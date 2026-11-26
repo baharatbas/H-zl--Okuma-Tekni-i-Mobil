@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { Button, Card, Empty, Screen, Text_ } from '../../components/ui';
+import { Button, Empty, Screen, Text_ } from '../../components/ui';
 import { ReadingTest, ReadingTestResult } from '../../components/ReadingTest';
 import { repositories } from '../../repositories';
 import { recordActivity } from '../../services/activity';
@@ -9,7 +9,8 @@ import { completeDaily } from '../../services/daily';
 import { spacing, useTheme } from '../../theme';
 import { t } from '../../i18n';
 import { lessonNote } from '../../content/lessonNotes';
-import { comprehensionPercent } from '../../core/metrics';
+import { MeasurementFlag, speedCostsComprehension } from '../../core/assessment';
+import { MeasurementSummary } from '../../components/MeasurementSummary';
 
 /** Metin testi: okuma hızı ve anlama oranı ölçülür ve kaydedilir. */
 export default function TextTestScreen() {
@@ -18,7 +19,7 @@ export default function TextTestScreen() {
   const repos = useMemo(() => repositories(), []);
   const text = useMemo(() => repos.texts.get(Number(id)), [repos, id]);
   const test = useMemo(() => (text ? repos.texts.getTest(text.id) : null), [repos, text]);
-  const [result, setResult] = useState<ReadingTestResult | null>(null);
+  const [result, setResult] = useState<(ReadingTestResult & { flags: MeasurementFlag[]; costWarning: boolean }) | null>(null);
 
   if (!text) return <Screen><Empty text={t('errors.notFound')} /></Screen>;
   if (!test || test.questions.length === 0) {
@@ -31,14 +32,15 @@ export default function TextTestScreen() {
   }
 
   const handleFinish = (r: ReadingTestResult) => {
-    repos.texts.recordTestResult(test.id, r.outcome, r.durationMs, r.startedAt);
+    const previous = repos.progress.getPerformanceSeries(1)[0];
+    const flags = repos.texts.recordTestResult(test.id, r.outcome, r.durationMs, r.startedAt);
     recordActivity(r.durationMs);
     completeDaily(daily);
     if (lesson !== undefined) {
       const course = repos.course.getActive();
       if (course) repos.course.completeLesson(course.id, Number(lesson));
     }
-    setResult(r);
+    setResult({ ...r, flags, costWarning: flags.length === 0 && speedCostsComprehension(previous, r.outcome) });
   };
 
   if (!result) {
@@ -54,13 +56,7 @@ export default function TextTestScreen() {
     <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }} style={{ backgroundColor: colors.background }}>
       <Stack.Screen options={{ title: text.title }} />
       <Text_ variant="title">{t('test.resultTitle')}</Text_>
-      <Card style={{ gap: spacing.md }}>
-        <Text_ variant="heading">{t('common.wpm', { value: Math.round(result.outcome.wpm) })}</Text_>
-        <Text_>
-          {t('levelTest.comprehensionLabel')}: {t('common.percent', { value: comprehensionPercent(result.outcome.correctCount, result.outcome.totalCount) })}
-        </Text_>
-        <Text_ muted>{`${result.outcome.correctCount} / ${result.outcome.totalCount}`}</Text_>
-      </Card>
+      <MeasurementSummary wpm={result.outcome.wpm} comprehension={result.outcome.comprehension} correct={result.outcome.correctCount} total={result.outcome.totalCount} flags={result.flags} costWarning={result.costWarning} />
       <Button title={t('library.read')} variant="secondary" onPress={() => setResult(null)} />
       <Button title={t('common.close')} onPress={() => router.back()} />
     </ScrollView>

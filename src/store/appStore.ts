@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { repositories } from '../repositories';
 import { AppSettings, DEFAULT_SETTINGS, LearningMode } from '../core/settings';
 import type { Level } from '../core/levels';
-import { isTrackMismatch } from '../core/exam/course';
+import { isTrackMismatch } from '../core/segmentCourse';
+import { segmentOf } from '../core/segments';
 
 /**
  * Global uygulama durumu (Zustand). Kalıcı veriler repository katmanından okunur ve yazılır;
@@ -43,7 +44,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const profile = repos.profile.get();
       // Kurs seçili yola uymuyorsa ve henüz ilerleme yoksa sessizce doğru kursla değiştirilir.
       const course = repos.course.getActive();
-      if (course && profile.level && isTrackMismatch(course.lessons, profile.settings.purpose === 'exam') && !course.lessons.some((l) => l.isCompleted)) {
+      if (course && profile.level && isTrackMismatch(course.lessons, segmentOf(profile.settings.purpose)) && !course.lessons.some((l) => l.isCompleted)) {
         repos.course.start(profile.level);
       }
       set({

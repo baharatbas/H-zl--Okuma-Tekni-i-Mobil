@@ -6,6 +6,7 @@ import { Avatar } from './Avatar';
 import { Text_ } from './ui';
 import { useAppStore } from '../store/appStore';
 import { useTrack } from '../hooks/useTrack';
+import { SEGMENTS } from '../core/segments';
 import { MIN_TOUCH, radius, spacing, useTheme } from '../theme';
 import { t } from '../i18n';
 
@@ -15,8 +16,8 @@ export function ProfileCard({ streak, bestStreak }: { streak: number; bestStreak
   const name = useAppStore((s) => s.settings.displayName);
   const photo = useAppStore((s) => s.photo);
   const level = useAppStore((s) => s.level);
-  const { isExam, exam } = useTrack();
-  const track = isExam ? exam.label : t('exam.trackSelf');
+  const { segment, isExam, exam } = useTrack();
+  const track = isExam ? `${SEGMENTS.exam.label} · ${exam.label}` : SEGMENTS[segment].label;
 
   const iconButton = (icon: 'create-outline' | 'settings-outline', label: string, href: '/profile' | '/settings') => (
     <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={() => router.push(href)} style={{ width: MIN_TOUCH, height: MIN_TOUCH, borderRadius: MIN_TOUCH / 2, backgroundColor: colors.onPrimary + '26', alignItems: 'center', justifyContent: 'center' }}>

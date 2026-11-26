@@ -3,6 +3,8 @@ import { buildDailyPlan, DailyKind, DailyTask } from '../core/dailyPlan';
 import type { Level } from '../core/levels';
 import { BUILTIN_TEXTS, LEVEL_TEST_KEY } from '../content/builtinTexts';
 import { countWords } from '../core/metrics';
+import { Segment, SEGMENTS } from '../core/segments';
+import { categoryOf } from '../content/textCategories';
 
 export interface DailyTaskRow extends DailyTask {
   completed: boolean;
@@ -10,9 +12,19 @@ export interface DailyTaskRow extends DailyTask {
 
 export interface DailyRepository {
   /** Günün planını döner; yoksa o anki performansa göre oluşturup saklar. */
-  getPlan(date: string, level: Level): DailyTaskRow[];
+  getPlan(date: string, level: Level, segment?: Segment): DailyTaskRow[];
+  /** Hiç görevi tamamlanmamışsa günün planını siler (grup değişince yenisi üretilir). */
+  reset(date: string): void;
   complete(date: string, position: number): void;
   totalXp(): number;
+}
+
+/** Grubun konularındaki metinler; yeterli metin yoksa tamamı. */
+function preferred(segment: Segment) {
+  const all = BUILTIN_TEXTS.filter((x) => x.key !== LEVEL_TEST_KEY);
+  const wanted = SEGMENTS[segment].categories;
+  const mine = all.filter((x) => wanted.includes(categoryOf({ key: x.key, source: 'builtin' })));
+  return mine.length >= 6 ? mine : all;
 }
 
 export function createDailyRepository(db: SqlDb): DailyRepository {
@@ -25,7 +37,11 @@ export function createDailyRepository(db: SqlDb): DailyRepository {
       .map(({ completed_at, ...row }) => ({ ...row, completed: completed_at !== null }));
 
   return {
-    getPlan(date, level) {
+    reset(date) {
+      db.runSync('DELETE FROM daily_tasks WHERE date = ? AND NOT EXISTS (SELECT 1 FROM daily_tasks d WHERE d.date = ? AND d.completed_at IS NOT NULL)', [date, date]);
+    },
+
+    getPlan(date, level, segment = 'self') {
       const existing = read(date);
       if (existing.length > 0) return existing;
 
@@ -50,7 +66,8 @@ export function createDailyRepository(db: SqlDb): DailyRepository {
         level,
         history,
         comprehension: comprehension ?? null,
-        texts: BUILTIN_TEXTS.filter((x) => x.key !== LEVEL_TEST_KEY).map((x) => ({ key: x.key, words: countWords(x.body) })),
+        segment,
+        texts: preferred(segment).map((x) => ({ key: x.key, words: countWords(x.body) })),
         seenTexts: seen.map((r) => r.key),
         previousRefs: previous.map((r) => r.ref),
       });

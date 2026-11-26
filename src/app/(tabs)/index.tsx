@@ -45,7 +45,7 @@ const weekday = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateStrin
 export default function TodayScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const { isExam, exam } = useTrack();
+  const { segment, isExam, exam } = useTrack();
   const level = useAppStore((s) => s.level);
   const displayName = useAppStore((s) => s.settings.displayName);
   const [data, setData] = useState<HomeData | null>(null);
@@ -57,7 +57,7 @@ export default function TodayScreen() {
     const last = series[series.length - 1];
     const attempts = repos.paragraphs.list();
     setData({
-      plan: repos.daily.getPlan(today, level ?? 'beginner'),
+      plan: repos.daily.getPlan(today, level ?? 'beginner', segment),
       totalXp: repos.daily.totalXp(),
       streak: repos.progress.getStreak(today).current,
       week: repos.progress.getRecentMinutes(today, 7),
@@ -67,7 +67,7 @@ export default function TodayScreen() {
       paragraph: stats(attempts),
       weak: weakestType(attempts),
     });
-  }, [level]);
+  }, [level, segment]);
 
   useFocusEffect(load);
 

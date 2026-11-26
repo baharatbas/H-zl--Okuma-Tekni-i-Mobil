@@ -1,6 +1,6 @@
 import type { ExerciseKey } from '../exercises/types';
 
-export type ExamTarget = 'lgs' | 'tyt' | 'kpss';
+export type ExamTarget = 'lgs' | 'tyt' | 'kpss' | 'uni';
 
 export type QuestionType = 'main' | 'topic' | 'detail' | 'inference' | 'completion' | 'flow' | 'structure' | 'order';
 
@@ -13,6 +13,7 @@ export const EXAMS: Record<ExamTarget, { label: string; short: string; optionCou
   lgs: { label: 'LGS', short: '8. sınıf', optionCount: 4, targetSec: 90 },
   tyt: { label: 'TYT / YKS', short: 'Üniversite sınavı', optionCount: 5, targetSec: 70 },
   kpss: { label: 'KPSS / ALES', short: 'Kamu ve lisansüstü', optionCount: 5, targetSec: 65 },
+  uni: { label: 'Üniversite', short: 'Akademik metinler', optionCount: 5, targetSec: 75 },
 };
 
 export interface ParagraphQuestion {

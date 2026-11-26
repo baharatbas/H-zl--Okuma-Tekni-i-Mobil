@@ -2,6 +2,8 @@ import type { SqlDb } from '../db/types';
 import { Level } from '../core/levels';
 import { buildCourse, LessonStep, LessonType, isStepUnlocked, nextDifficulty, PASS_SCORE } from '../core/course';
 import { buildExamCourse } from '../core/exam/course';
+import { buildSegmentCourse } from '../core/segmentCourse';
+import { segmentOf } from '../core/segments';
 import { parseSettings } from '../core/settings';
 import { findTactic } from '../content/tactics';
 
@@ -127,16 +129,17 @@ export function createCourseRepository(db: SqlDb): CourseRepository {
 
     start(level) {
       const profile = db.getFirstSync<{ settings_json: string }>('SELECT settings_json FROM user_profile WHERE id = 1');
-      const exam = parseSettings(profile?.settings_json).purpose === 'exam';
+      const segment = segmentOf(parseSettings(profile?.settings_json).purpose);
+      const plan = segment === 'exam' ? buildExamCourse(level) : segment === 'self' ? buildCourse(level) : buildSegmentCourse(segment, level);
       let courseId = 0;
       db.withTransactionSync(() => {
         db.runSync('DELETE FROM courses');
         const res = db.runSync(
           'INSERT INTO courses (level, title, created_at, completed_at) VALUES (?, ?, ?, NULL)',
-          [level, exam ? 'Sınav Paragraf Kursu' : TITLES[level], new Date().toISOString()],
+          [level, segment === 'exam' ? 'Sınav Paragraf Kursu' : segment === 'work' ? 'İş Okuması Kursu' : segment === 'books' ? 'Kitap Okuru Kursu' : TITLES[level], new Date().toISOString()],
         );
         courseId = res.lastInsertRowId;
-        for (const step of exam ? buildExamCourse(level) : buildCourse(level)) {
+        for (const step of plan) {
           insertStep(courseId, step);
         }
       });

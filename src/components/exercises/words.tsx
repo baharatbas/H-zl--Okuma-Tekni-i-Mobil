@@ -8,12 +8,13 @@ import type { ExerciseKey } from '../../core/exercises/types';
 import {
   ChainRound, chainCorrect, ChoiceRound, huntMatch, mazeRounds, realOrFakeRounds, trueFalseRounds, wordChainRounds, missingWordRounds, phraseRounds, sentenceFinishRounds, summarizeGame, typoRounds, wordFindRounds, wordHuntPuzzle, wordMemoryRounds,
 } from '../../core/exercises/wordGames';
+import { stroopRounds, mainIdeaRounds, scanAnswerRounds, antonymRounds, categoryOddRounds, connectorRounds } from '../../core/exercises/moreGames';
 import { createRng, Rng } from '../../core/rng';
 import { haptic } from '../../services/haptics';
 import { radius, spacing, useTheme } from '../../theme';
 import { t } from '../../i18n';
 
-type ChoiceKey = 'word_find' | 'phrase_group' | 'missing_word' | 'sentence_finish' | 'real_or_fake' | 'true_false' | 'maze_read';
+type ChoiceKey = 'word_find' | 'phrase_group' | 'missing_word' | 'sentence_finish' | 'real_or_fake' | 'true_false' | 'maze_read' | 'stroop' | 'main_idea' | 'scan_answer' | 'antonym' | 'category_odd' | 'connector';
 
 const CHOICE_ROUNDS: Record<ChoiceKey, (difficulty: number, rng: Rng) => ChoiceRound[]> = {
   word_find: wordFindRounds,
@@ -23,6 +24,12 @@ const CHOICE_ROUNDS: Record<ChoiceKey, (difficulty: number, rng: Rng) => ChoiceR
   real_or_fake: realOrFakeRounds,
   true_false: trueFalseRounds,
   maze_read: mazeRounds,
+  stroop: stroopRounds,
+  main_idea: mainIdeaRounds,
+  scan_answer: scanAnswerRounds,
+  antonym: antonymRounds,
+  category_odd: categoryOddRounds,
+  connector: connectorRounds,
 };
 
 const shell = (key: ExerciseKey, index: number, total: number, done: boolean) => ({
@@ -85,7 +92,7 @@ export function ChoiceGame({ gameKey, settings, onFinish, onQuit }: GameProps & 
             <Text_ variant="title" accessibilityLiveRegion="polite" style={{ textAlign: 'center' }}>{round.flash![step]}</Text_>
           ) : (
             <>
-              {round.prompt ? <Text_ variant={gameKey === 'word_find' || gameKey === 'real_or_fake' ? 'display' : 'heading'} style={{ textAlign: 'center' }}>{round.prompt}</Text_> : null}
+              {round.prompt ? <Text_ variant={['word_find', 'real_or_fake', 'stroop', 'antonym'].includes(gameKey) ? 'display' : 'heading'} style={{ textAlign: 'center', ...(round.promptColor ? { color: round.promptColor } : null) }}>{round.prompt}</Text_> : null}
               <Choices options={round.options} correct={round.correctIndex} picked={picked} onPick={pick} />
             </>
           )}

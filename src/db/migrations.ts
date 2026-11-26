@@ -197,6 +197,11 @@ export const MIGRATIONS: Migration[] = [
       )`,
     ],
   },
+  {
+    version: 8,
+    name: 'measurement_flags',
+    statements: [`ALTER TABLE test_results ADD COLUMN flags TEXT NOT NULL DEFAULT ''`],
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

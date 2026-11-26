@@ -117,7 +117,7 @@ export function createProgressRepository(db: SqlDb): ProgressRepository {
       // Yalnızca testler: Hızlı Oku'da metin ayarlanan hızda aktığı için orada kullanıcının hızı ölçülmez.
       const rows = db.getAllSync<{ at: string; wpm: number; comprehension: number }>(
         `SELECT started_at AS at, wpm, comprehension_rate AS comprehension FROM test_results
-         WHERE wpm BETWEEN ? AND ? ORDER BY started_at DESC, id DESC LIMIT ?`,
+         WHERE flags = '' AND wpm BETWEEN ? AND ? ORDER BY started_at DESC, id DESC LIMIT ?`,
         [MIN_PLAUSIBLE_WPM, MAX_PLAUSIBLE_WPM, limit],
       );
       return rows.reverse();

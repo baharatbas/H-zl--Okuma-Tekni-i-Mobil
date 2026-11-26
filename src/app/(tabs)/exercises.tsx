@@ -8,6 +8,7 @@ import { Text_ } from '../../components/ui';
 import { DailySetCard, TypeList } from '../../components/ParagraphHub';
 import type { Attempt } from '../../core/exam/practice';
 import { useTrack } from '../../hooks/useTrack';
+import { SEGMENTS } from '../../core/segments';
 import { EXERCISES, EXERCISE_KEYS } from '../../core/exercises/registry';
 import type { ExerciseKey } from '../../core/exercises/types';
 import { EXERCISE_GROUPS, SHORT_SKILL } from '../../content/exerciseGroups';
@@ -21,7 +22,7 @@ import { t } from '../../i18n';
 export default function ExercisesScreen() {
   const { colors, fontScale } = useTheme();
   const insets = useSafeAreaInsets();
-  const { isExam } = useTrack();
+  const { segment, isExam } = useTrack();
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const { width, fontScale: systemScale } = useWindowDimensions();
   const [best, setBest] = useState<Partial<Record<ExerciseKey, number>>>({});
@@ -92,7 +93,7 @@ export default function ExercisesScreen() {
           </View>
         </Pressable>
 
-        {EXERCISE_GROUPS.map((group) => (
+        {[{ id: 'mine', title: t('exercises.forYou'), subtitle: SEGMENTS[segment].need, keys: SEGMENTS[segment].recommended }, ...EXERCISE_GROUPS].map((group) => (
           <View key={group.id} style={{ gap: spacing.md }}>
             <View>
               <Text_ variant="heading" accessibilityRole="header">{group.title}</Text_>

@@ -5,6 +5,7 @@
 import { LEVEL_PARAMS, Level } from './levels';
 import type { ExerciseKey } from './exercises/types';
 import { createRng, pickOne, Rng } from './rng';
+import { Segment, SEGMENTS } from './segments';
 
 export type DailyKind = 'attention' | 'recognition' | 'fluency' | 'comprehension' | 'memory';
 
@@ -18,8 +19,8 @@ export interface DailyTask {
   xp: number;
 }
 
-export const ATTENTION: ExerciseKey[] = ['star_hunter', 'schulte', 'tracking', 'zigzag_horizontal', 'zigzag_vertical', 'peripheral_letters', 'scan_search', 'word_hunt', 'typo_find'];
-export const RECOGNITION: ExerciseKey[] = ['word_blocks', 'flash_numbers', 'synonym_match', 'line_scan', 'rsvp_repeat', 'word_find', 'phrase_group', 'word_memory', 'missing_word', 'real_or_fake', 'true_false', 'maze_read', 'word_chain'];
+export const ATTENTION: ExerciseKey[] = SEGMENTS.self.attention;
+export const RECOGNITION: ExerciseKey[] = SEGMENTS.self.recognition;
 
 export const XP: Record<DailyKind, number> = { attention: 20, recognition: 20, fluency: 30, comprehension: 30, memory: 20 };
 
@@ -35,6 +36,8 @@ export interface DailyInput {
   seenTexts: string[];
   /** Bir önceki antrenmanın görev referansları; art arda tekrar edilmez. */
   previousRefs: string[];
+  /** Kullanıcı grubu; verilmezse genel. */
+  segment?: Segment;
 }
 
 /** Son iki puana göre zorluk: başarılıysa bir artar, zorlanıyorsa bir azalır. */
@@ -74,8 +77,9 @@ function pickText(rng: Rng, input: DailyInput, exclude: string[]): { key: string
 export function buildDailyPlan(input: DailyInput): DailyTask[] {
   const rng = createRng(Number(input.date.replace(/-/g, '')));
   const wpm = LEVEL_PARAMS[input.level].defaultReadingWpm;
-  const attention = pickExercise(rng, ATTENTION, input);
-  const recognition = pickExercise(rng, RECOGNITION, input);
+  const group = SEGMENTS[input.segment ?? 'self'];
+  const attention = pickExercise(rng, group.attention, input);
+  const recognition = pickExercise(rng, group.recognition, input);
   // Akıcılık ve test ayrı metin kullanır: aynı metni iki kez okumak ölçülen hızı şişirirdi.
   const fluency = pickText(rng, input, input.previousRefs);
   const test = pickText(rng, input, [...input.previousRefs, fluency.key]);

@@ -4,7 +4,7 @@
  */
 import { clampDifficulty } from './types';
 
-export type ZigzagOrientation = 'horizontal' | 'vertical';
+export type ZigzagOrientation = 'horizontal' | 'vertical' | 'diagonal';
 
 export interface ZigzagParams {
   orientation: ZigzagOrientation;
@@ -32,11 +32,23 @@ export interface ZigzagStep {
   position: { x: number; y: number };
 }
 
+/** Çapraz modda köşeler karşılıklı sırayla gezilir. */
+const CORNERS = [
+  { x: 0.15, y: 0.15 },
+  { x: 0.85, y: 0.85 },
+  { x: 0.85, y: 0.15 },
+  { x: 0.15, y: 0.85 },
+];
+
 /** Sıra, sol-sağ (veya üst-alt) arasında dönüşümlü gider. */
 export function generateZigzagSteps(params: ZigzagParams): ZigzagStep[] {
   const steps: ZigzagStep[] = [];
   for (let i = 0; i < params.steps; i++) {
     const side = (i % 2) as 0 | 1;
+    if (params.orientation === 'diagonal') {
+      steps.push({ side, position: CORNERS[i % CORNERS.length] });
+      continue;
+    }
     const edge = side === 0 ? 0.15 : 0.85;
     // Hedef konumu: kenar + merkeze doğru hafif kayma (her turda farklı yükseklik/genişlik)
     const offset = 0.5 + 0.3 * Math.sin(i * 1.7);

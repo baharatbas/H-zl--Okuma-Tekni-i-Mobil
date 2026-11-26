@@ -1,4 +1,6 @@
 /** Uygulama ayarları. Kalıcı olarak user_profile.settings_json içinde saklanır. */
+import type { Segment } from './segments';
+
 export type ThemeMode = 'system' | 'light' | 'dark';
 export type ReadingMode = 'word' | 'chunk' | 'block';
 export type LearningMode = 'smart' | 'free';
@@ -19,10 +21,10 @@ export interface AppSettings {
   chunkSize: number;
   /** İlk açılış akışı tamamlandı mı? (bir kez gösterilir) */
   onboardingDone: boolean;
-  /** Kullanım amacı: sınava hazırlık ya da kişisel gelişim. */
-  purpose: 'exam' | 'self' | null;
+  /** Kullanıcı grubu: öğrenci ('exam'), çalışan, kitap okuru ya da genel ('self'). */
+  purpose: Segment | null;
   /** Sınav yolunda hedeflenen sınav. */
-  examTarget: 'lgs' | 'tyt' | 'kpss';
+  examTarget: 'lgs' | 'tyt' | 'kpss' | 'uni';
   /** İsteğe bağlı hitap adı; yalnızca bu cihazda saklanır. */
   displayName: string;
 }

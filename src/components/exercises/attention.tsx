@@ -112,9 +112,9 @@ export function TrackingGame({ settings, onFinish, onQuit }: GameProps) {
   );
 }
 
-export function ZigzagGame({ settings, onFinish, onQuit, orientation }: GameProps & { orientation: 'horizontal' | 'vertical' }) {
+export function ZigzagGame({ settings, onFinish, onQuit, orientation }: GameProps & { orientation: 'horizontal' | 'vertical' | 'diagonal' }) {
   const { colors } = useTheme();
-  const meta = orientation === 'horizontal' ? EXERCISES.zigzag_horizontal : EXERCISES.zigzag_vertical;
+  const meta = EXERCISES[orientation === 'horizontal' ? 'zigzag_horizontal' : orientation === 'vertical' ? 'zigzag_vertical' : 'diagonal_jump'];
   const [params] = useState(() => zigzagParams(orientation, settings.difficulty, settings.speedMs));
   const [steps] = useState(() => generateZigzagSteps(params));
   const [index, setIndex] = useState(-1);

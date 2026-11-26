@@ -142,6 +142,21 @@ Ana sayfada her gün 5 görev vardır: görsel dikkat, kelime tanıma, okuma ak�
 
 `word_find`, `phrase_group`, `missing_word`, `sentence_finish`, `word_memory`, `typo_find`, `word_hunt`, `real_or_fake`, `true_false`, `maze_read`, `word_chain`: mantık `src/core/exercises/wordGames.ts`, içerik `src/content/wordGames.ts`, ekranlar `src/components/exercises/words.tsx`. Bu çalışmalar genel okuma hızını ya da zekâyı artırdığı iddiasıyla sunulmaz.
 
+## Ek egzersizler
+
+Her kategoriye eklenen çalışmalar: `diagonal_jump`, `pacer_read`, `column_flow`, `stroop`, `odd_one`, `corsi`, `main_idea`, `sentence_order`, `scan_answer`, `antonym`, `category_odd`, `connector`. Mantık `src/core/exercises/moreGames.ts`, ekranlar `src/components/exercises/more.tsx`. Görsel dikkat çalışmalarının okuma hızını artırdığına dair kanıt karışıktır; uygulama böyle bir iddiada bulunmaz.
+
+## Ölçüm sistemi
+
+- Okuma hızı = kelime sayısı ÷ okuma süresi (sn) × 60; süre soruları kapsamaz. Sayım: boşlukla ayrılan, en az bir harf ya da rakam içeren parçalar.
+- Etkin hız = hız × anlama oranı. Sınav yolunda anlama, kişisel gelişimde etkin hız öne çıkar.
+- Seviye testi, uzunluk ve basit okunabilirlik ölçüsü yakın üç farklı metin kullanır (yaklaşık eşdeğerlik; metinler kalibre edilmemiştir). Her metinde 3 soru vardır.
+- 600 üstü / 40 altı kelime/dk, hızlı geçip soruları kaçırma ve daha önce okunmuş metin ölçümleri işaretlenir (`test_results.flags`, şema 8) ve grafiğe alınmaz. Kurallar `src/core/assessment.ts` içindedir.
+
+## Dört kullanıcı grubu
+
+Öğrenci (`exam`), çalışan (`work`), kitap okuru (`books`) ve genel (`self`). Her grubun kursu, günlük antrenman havuzu, metin konuları, önerilen egzersizleri ve öne çıkan ölçüsü ayrıdır: `src/core/segments.ts`, `src/core/segmentCourse.ts`. Grup değişince kurs yeniden oluşturulur.
+
 ## Premium
 
 Beş sekmenin üstünde premium kartı görünür; `useIsPremium()` doğruysa gizlenir. Satın alma henüz bağlı değildir ve fiyatlar örnektir (`src/components/Premium.tsx`). RevenueCat eklenince `src/store/premiumStore.ts` içindeki `setPremium` yetki durumuna göre çağrılmalı, fiyatlar mağazadan okunmalıdır. RevenueCat yerel modül içerdiği için geliştirme derlemesi gerekir ve satın alma verisi sunucuya gider; gizlilik metni buna göre güncellenmelidir.

@@ -2,9 +2,12 @@
  * Okuma hızı ve anlama metrikleri. Tüm fonksiyonlar saf (side-effect yok) ve test edilebilir.
  */
 
-/** Metindeki kelime sayısı. Boşluk/satır sonu ile ayrılmış, boş olmayan parçalar sayılır. */
+/**
+ * Sayım standardı: boşluk/satır sonu ile ayrılan ve en az bir harf ya da rakam içeren her parça
+ * bir kelimedir. Tek başına duran noktalama (—, …) sayılmaz; "Ankara'dan" ve "250" birer kelimedir.
+ */
 export function countWords(text: string): number {
-  return text.split(/\s+/).filter((w) => w.length > 0).length;
+  return text.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
 }
 
 /**

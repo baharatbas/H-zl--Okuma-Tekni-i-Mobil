@@ -12,6 +12,8 @@ export interface ChoiceRound {
   correctIndex: number;
   /** Bu sürede cevap verilmezse tur yanlış sayılır. */
   limitMs?: number;
+  /** Soru yazısının rengi (renk-kelime oyunu). */
+  promptColor?: string;
 }
 
 const withAnswer = (rng: Rng, correct: string, wrong: string[]) => {

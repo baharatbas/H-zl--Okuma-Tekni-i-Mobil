@@ -14,7 +14,8 @@ import { t } from '../../i18n';
 import { lessonRoute, lessonStepIcon, lessonTitle } from '../../services/lessons';
 import { DIFFICULTY_LEVELS, unitMeta } from '../../core/course';
 import { haptic } from '../../services/haptics';
-import { examRef, isTrackMismatch } from '../../core/exam/course';
+import { examRef } from '../../core/exam/course';
+import { isTrackMismatch } from '../../core/segmentCourse';
 import { useTrack } from '../../hooks/useTrack';
 import { TECHNIQUES } from '../../content/exam/techniques';
 import { findTactic } from '../../content/tactics';
@@ -36,7 +37,7 @@ const typeLabel = (l: LessonRow) =>
 export default function CourseScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const { isExam } = useTrack();
+  const { segment } = useTrack();
   const level = useAppStore((s) => s.level);
   const [course, setCourse] = useState<CourseView | null>(null);
 
@@ -125,7 +126,7 @@ export default function CourseScreen() {
           )}
         </View>
 
-        {isTrackMismatch(course.lessons, isExam) ? (
+        {isTrackMismatch(course.lessons, segment) ? (
           <Card style={{ gap: spacing.md }}>
             <Text_>{t('exam.mismatch')}</Text_>
             <Button title={t('exam.switchCourse')} variant="secondary" onPress={confirmRestart} />
@@ -135,7 +136,8 @@ export default function CourseScreen() {
         {/* Ünite kartları */}
         {units.map(([unit, lessons], unitIndex) => {
           const examType = lessons.map((l) => examRef(l.contentRef)?.type).find(Boolean);
-          const meta = examType ? { title: TECHNIQUES[examType].title, goal: TECHNIQUES[examType].goal } : unitMeta(course.level, unit);
+          const tactic = findTactic(lessons[0].contentRef);
+          const meta = examType ? { title: TECHNIQUES[examType].title, goal: TECHNIQUES[examType].goal } : tactic ?? unitMeta(course.level, unit);
           const tint = UNIT_COLORS[unitIndex % UNIT_COLORS.length];
           const unitDone = lessons.filter((l) => l.isCompleted).length;
           const complete = unitDone === lessons.length;

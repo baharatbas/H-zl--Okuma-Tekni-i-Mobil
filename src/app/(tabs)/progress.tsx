@@ -12,6 +12,7 @@ import { MIN_TOUCH, radius, spacing, useTheme } from '../../theme';
 import { t } from '../../i18n';
 import { EXERCISES } from '../../core/exercises/registry';
 import { average, change, niceScale } from '../../core/progressStats';
+import { effectiveWpm } from '../../core/metrics';
 import { localDateString } from '../../core/streak';
 import { TypeList } from '../../components/ParagraphHub';
 import { Attempt, stats } from '../../core/exam/practice';
@@ -30,7 +31,7 @@ interface ProgressData {
   bestStreak: number;
 }
 
-type Metric = 'speed' | 'comprehension';
+type Metric = 'speed' | 'comprehension' | 'effective';
 
 const shortDate = (iso: string) => new Date(iso).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
 const weekday = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString('tr-TR', { weekday: 'short' });
@@ -65,12 +66,13 @@ export default function ProgressScreen() {
   const compPoints = data.series.map((p) => ({ value: Math.round(p.comprehension * 100), label: shortDate(p.at) }));
   const speeds = speedPoints.map((p) => p.value);
   const comps = compPoints.map((p) => p.value);
-  const points = metric === 'speed' ? speedPoints : compPoints;
-  const values = metric === 'speed' ? speeds : comps;
-  const chartScale = metric === 'speed' ? niceScale(speeds) : { min: 0, max: 100, ticks: [0, 50, 100] };
+  const effectivePoints = data.series.map((p) => ({ value: Math.round(effectiveWpm(p.wpm, p.comprehension)), label: shortDate(p.at) }));
+  const points = metric === 'speed' ? speedPoints : metric === 'comprehension' ? compPoints : effectivePoints;
+  const values = metric === 'speed' ? speeds : metric === 'comprehension' ? comps : effectivePoints.map((p) => p.value);
+  const chartScale = metric === 'comprehension' ? { min: 0, max: 100, ticks: [0, 50, 100] } : niceScale(values);
   const diff = change(values);
   const avg = average(values);
-  const format = (v: number) => (metric === 'speed' ? String(v) : `%${v}`);
+  const format = (v: number) => (metric === 'comprehension' ? `%${v}` : String(v));
 
   const weekTotal = Math.round(data.week.reduce((sum, d) => sum + d.minutes, 0));
   // Günlük hedef çizgisinin de grafiğe sığması için tavan en az hedef kadardır.
@@ -103,7 +105,7 @@ export default function ProgressScreen() {
         <Section title={t('progress.chartTitle')} note={t('progress.source')}>
           <View style={[surface, { padding: spacing.lg, gap: spacing.lg }]}>
             <View style={{ flexDirection: 'row', backgroundColor: colors.surfaceAlt, borderRadius: radius.pill, padding: 4 }}>
-              {(['speed', 'comprehension'] as const).map((m) => {
+              {(['speed', 'comprehension', 'effective'] as const).map((m) => {
                 const selected = metric === m;
                 return (
                   <Pressable
@@ -114,7 +116,7 @@ export default function ProgressScreen() {
                     style={{ flex: 1, minHeight: MIN_TOUCH - 8, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: selected ? colors.surface : 'transparent' }}
                   >
                     <Text_ variant="label" style={{ color: selected ? colors.text : colors.textMuted }}>
-                      {m === 'speed' ? t('progress.tabSpeed') : t('progress.tabComprehension')}
+                      {m === 'speed' ? t('progress.tabSpeed') : m === 'comprehension' ? t('progress.tabComprehension') : t('measure.effective')}
                     </Text_>
                   </Pressable>
                 );
@@ -130,10 +132,10 @@ export default function ProgressScreen() {
             ) : (
               <>
                 <View style={{ gap: spacing.xs }}>
-                  <Text_ variant="caption" muted>{metric === 'speed' ? t('progress.lastSpeed') : t('progress.lastComprehension')}</Text_>
+                  <Text_ variant="caption" muted>{metric === 'speed' ? t('progress.lastSpeed') : metric === 'comprehension' ? t('progress.lastComprehension') : t('measure.lastEffective')}</Text_>
                   <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm }}>
                     <Text_ style={{ fontSize: scale(44), lineHeight: scale(50), fontWeight: '800', fontVariant: ['tabular-nums'] }}>{format(values[values.length - 1])}</Text_>
-                    {metric === 'speed' ? <Text_ muted>{t('today.wpmUnit')}</Text_> : null}
+                    {metric !== 'comprehension' ? <Text_ muted>{t('today.wpmUnit')}</Text_> : null}
                   </View>
                   {diff !== null ? (
                     <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: spacing.xs, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: radius.pill, backgroundColor: (diff >= 0 ? colors.success : colors.danger) + '1A' }}>
@@ -141,7 +143,7 @@ export default function ProgressScreen() {
                       <Text_ variant="caption" style={{ color: diff >= 0 ? colors.success : colors.danger, fontWeight: '600', flexShrink: 1 }}>
                         {diff === 0
                           ? t('progress.same')
-                          : metric === 'speed'
+                          : metric !== 'comprehension'
                             ? diff > 0 ? t('progress.speedUp', { value: diff }) : t('progress.speedDown', { value: -diff })
                             : diff > 0 ? t('progress.compUp', { value: diff }) : t('progress.compDown', { value: -diff })}
                       </Text_>

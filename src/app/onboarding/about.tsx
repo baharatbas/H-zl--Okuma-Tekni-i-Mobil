@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { TextInput, View } from 'react-native';
 import { ChoiceCard, OnboardingFrame } from '../../components/Onboarding';
 import { EXAMS, ExamTarget } from '../../core/exam/types';
+import { Segment, SEGMENT_KEYS, SEGMENTS } from '../../core/segments';
 import { Chip, Text_ } from '../../components/ui';
 import { useAppStore } from '../../store/appStore';
 import { radius, spacing, useTheme } from '../../theme';
@@ -12,7 +13,7 @@ import { t } from '../../i18n';
 export default function AboutScreen() {
   const { colors } = useTheme();
   const updateSettings = useAppStore((s) => s.updateSettings);
-  const [purpose, setPurpose] = useState<'exam' | 'self' | null>(null);
+  const [purpose, setPurpose] = useState<Segment | null>(null);
   const [name, setName] = useState('');
   const [target, setTarget] = useState<ExamTarget>('tyt');
 
@@ -31,8 +32,9 @@ export default function AboutScreen() {
       onCta={next}
       ctaDisabled={purpose === null}
     >
-      <ChoiceCard title={t('onboarding.purposeExam')} body={t('onboarding.purposeExamBody')} selected={purpose === 'exam'} onPress={() => setPurpose('exam')} />
-      <ChoiceCard title={t('onboarding.purposeSelf')} body={t('onboarding.purposeSelfBody')} selected={purpose === 'self'} onPress={() => setPurpose('self')} />
+      {SEGMENT_KEYS.map((key) => (
+        <ChoiceCard key={key} title={SEGMENTS[key].label} body={`${SEGMENTS[key].audience}. ${SEGMENTS[key].need}`} selected={purpose === key} onPress={() => setPurpose(key)} />
+      ))}
 
       {purpose === 'exam' ? (
         <View style={{ gap: spacing.sm }}>

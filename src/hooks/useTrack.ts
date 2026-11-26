@@ -1,9 +1,11 @@
 import { useAppStore } from '../store/appStore';
 import { EXAMS } from '../core/exam/types';
+import { segmentOf } from '../core/segments';
 
-/** Kullanıcının yolu: sınava hazırlık mı, ve hangi sınav. */
+/** Kullanıcının grubu; öğrenciyse hedeflediği sınav. */
 export function useTrack() {
-  const isExam = useAppStore((s) => s.settings.purpose === 'exam');
+  const segment = useAppStore((s) => segmentOf(s.settings.purpose));
+  const isExam = segment === 'exam';
   const target = useAppStore((s) => s.settings.examTarget);
-  return { isExam, target, exam: EXAMS[target] ?? EXAMS.tyt };
+  return { segment, isExam, target, exam: EXAMS[target] ?? EXAMS.tyt };
 }

@@ -30,8 +30,3 @@ export function examRef(contentRef: string): { kind: 'tech' | 'para'; type: Ques
   const type = contentRef.slice(5) as QuestionType;
   return QUESTION_TYPES.includes(type) ? { kind, type } : null;
 }
-
-/** Kurs, seçili yola uymuyor mu? */
-export function isTrackMismatch(lessons: { contentRef: string }[], wantsExam: boolean): boolean {
-  return lessons.some((l) => examRef(l.contentRef) !== null) !== wantsExam;
-}

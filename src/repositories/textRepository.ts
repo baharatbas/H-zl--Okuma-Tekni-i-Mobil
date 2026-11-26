@@ -1,5 +1,6 @@
 import type { SqlDb } from '../db/types';
 import { countWords } from '../core/metrics';
+import { measurementFlags, MeasurementFlag } from '../core/assessment';
 import type { TestOutcome } from "../core/testScoring";
 import type { ReadingMode } from '../core/settings';
 
@@ -64,7 +65,10 @@ export interface TextRepository {
   /** Kullanıcının özel sorularını değiştirir (öncekiler silinir). */
   createCustomTest(textId: number, questions: Omit<TestQuestion, "id" | "position">[]): number;
   clearCustomTests(textId: number): void;
-  recordTestResult(testId: number, outcome: TestOutcome, durationMs: number, startedAt?: string): void;
+  /** Sonucu kaydeder; ölçüm şüpheliyse nedenlerini döner. */
+  recordTestResult(testId: number, outcome: TestOutcome, durationMs: number, startedAt?: string): MeasurementFlag[];
+  /** Daha önce okunmuş ya da testi çözülmüş hazır metinlerin anahtarları. */
+  seenKeys(): string[];
   recordReadingSession(textId: number, wpm: number, durationMs: number, wordCount: number, mode: string, startedAt?: string): void;
   listReadingSessions(limit?: number): ReadingSessionRecord[];
 }
@@ -192,10 +196,28 @@ export function createTextRepository(db: SqlDb): TextRepository {
       db.runSync("DELETE FROM test_questions WHERE test_id IN (SELECT id FROM tests WHERE text_id = ? AND type = 'custom')", [textId]);
     },
 
+    seenKeys() {
+      return db
+        .getAllSync<{ key: string }>(
+          `SELECT l.key FROM library_texts l WHERE l.key IS NOT NULL AND (
+             EXISTS (SELECT 1 FROM reading_sessions r WHERE r.text_id = l.id)
+             OR EXISTS (SELECT 1 FROM tests t JOIN test_results x ON x.test_id = t.id WHERE t.text_id = l.id))`,
+        )
+        .map((r) => r.key);
+    },
+
     recordTestResult(testId, outcome, durationMs, startedAt = new Date().toISOString()) {
+      // Metin daha önce okunduysa ya da testi çözüldüyse ölçülen hız olduğundan yüksek çıkar.
+      const seen = db.getFirstSync<{ n: number }>(
+        `SELECT (SELECT COUNT(*) FROM test_results x JOIN tests o ON o.id = x.test_id WHERE o.text_id = t.text_id)
+              + (SELECT COUNT(*) FROM reading_sessions r WHERE r.text_id = t.text_id) AS n
+         FROM tests t WHERE t.id = ?`,
+        [testId],
+      );
+      const flags = measurementFlags({ wpm: outcome.wpm, comprehension: outcome.comprehension, seenBefore: (seen?.n ?? 0) > 0 });
       db.runSync(
-        `INSERT INTO test_results (test_id, started_at, correct_count, total_count, wpm, comprehension_rate, duration_ms, word_count)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO test_results (test_id, started_at, correct_count, total_count, wpm, comprehension_rate, duration_ms, word_count, flags)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           testId,
           startedAt,
@@ -205,8 +227,10 @@ export function createTextRepository(db: SqlDb): TextRepository {
           outcome.comprehension,
           Math.round(durationMs),
           outcome.wordCount,
+          flags.join(','),
         ],
       );
+      return flags;
     },
 
     recordReadingSession(textId, wpm, durationMs, wordCount, mode, startedAt = new Date().toISOString()) {

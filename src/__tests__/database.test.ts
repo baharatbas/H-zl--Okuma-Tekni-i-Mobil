@@ -31,8 +31,8 @@ function setup() {
 describe('migrasyonlar', () => {
   it('şemayı en son sürüme getirir ve tekrar çalıştırıldığında hiçbir şey uygulamaz', () => {
     const db = openMemoryDb();
-    expect(migrate(db)).toBe(7);
-    expect(currentSchemaVersion(db)).toBe(7);
+    expect(migrate(db)).toBe(8);
+    expect(currentSchemaVersion(db)).toBe(8);
     expect(migrate(db)).toBe(0);
   });
 
@@ -216,8 +216,8 @@ describe('kalıcılık ve doğru grafik', () => {
     const { texts, progress } = setup();
     const test = texts.getTest(texts.getByKey('builtin-sea')!.id)!;
     texts.recordTestResult(test.id, outcome(5000), 1000, '2026-11-01T10:00:00.000Z');
-    texts.recordTestResult(test.id, outcome(240), 25000, '2026-11-03T10:00:00.000Z');
-    texts.recordTestResult(test.id, outcome(180), 33000, '2026-11-02T10:00:00.000Z');
+    texts.recordTestResult(texts.getTest(texts.getByKey('builtin-garden')!.id)!.id, outcome(240), 25000, '2026-11-03T10:00:00.000Z');
+    texts.recordTestResult(texts.getTest(texts.getByKey('builtin-city')!.id)!.id, outcome(180), 33000, '2026-11-02T10:00:00.000Z');
     expect(progress.getPerformanceSeries().map((p) => p.wpm)).toEqual([180, 240]);
   });
 

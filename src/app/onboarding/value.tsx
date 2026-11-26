@@ -7,16 +7,18 @@ import { Text_ } from '../../components/ui';
 import { radius, spacing, useTheme } from '../../theme';
 import { t } from '../../i18n';
 import { useTrack } from '../../hooks/useTrack';
+import { SEGMENTS } from '../../core/segments';
 
 /** İlk açılış 2/3: uygulamanın ne yaptığı ve dürüst beklenti. */
 export default function ValueScreen() {
   const { colors } = useTheme();
-  const { isExam } = useTrack();
+  const { segment, isExam } = useTrack();
+  const features = SEGMENTS[segment].features;
   const items: { icon: string; title: string; body: string }[] = isExam ? [
     { icon: 'search-outline', title: t('exam.v1Title'), body: t('exam.v1Body') },
     { icon: 'timer-outline', title: t('exam.v2Title'), body: t('exam.v2Body') },
     { icon: 'trending-up-outline', title: t('exam.v3Title'), body: t('exam.v3Body') },
-  ] : [
+  ] : features.length ? features.map(([title, body], i) => ({ icon: ['search-outline', 'flag-outline', 'trending-up-outline'][i], title, body })) : [
     { icon: 'speedometer-outline', title: t('onboarding.v1Title'), body: t('onboarding.v1Body') },
     { icon: 'git-branch-outline', title: t('onboarding.v2Title'), body: t('onboarding.v2Body') },
     { icon: 'trending-up-outline', title: t('onboarding.v3Title'), body: t('onboarding.v3Body') },

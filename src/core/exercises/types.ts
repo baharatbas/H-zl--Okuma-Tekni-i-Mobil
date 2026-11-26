@@ -26,7 +26,19 @@ export type ExerciseKey =
   | 'real_or_fake'
   | 'true_false'
   | 'maze_read'
-  | 'word_chain';
+  | 'word_chain'
+  | 'diagonal_jump'
+  | 'pacer_read'
+  | 'column_flow'
+  | 'stroop'
+  | 'odd_one'
+  | 'corsi'
+  | 'main_idea'
+  | 'sentence_order'
+  | 'scan_answer'
+  | 'antonym'
+  | 'category_odd'
+  | 'connector';
 
 export interface ExerciseSettings {
   /** 1 (kolay) – 5 (zor). */
