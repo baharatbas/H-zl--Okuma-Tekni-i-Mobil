@@ -101,3 +101,13 @@ const UNIT_META: Record<Level, UnitMeta[]> = {
 export function unitMeta(level: Level, unit: number): UnitMeta {
   return UNIT_META[level][unit - 1] ?? { title: `Ünite ${unit}`, goal: '' };
 }
+
+/** Egzersiz adımında geçilmesi gereken zorluk seviyeleri. */
+export const DIFFICULTY_LEVELS = [1, 2, 3, 4, 5];
+/** Bir seviyenin geçilmiş sayılması için en düşük puan (sonuç ekranında 2 yıldız). */
+export const PASS_SCORE = 60;
+
+/** Henüz geçilmemiş en kolay seviye; hepsi geçildiyse null. */
+export function nextDifficulty(passed: number[]): number | null {
+  return DIFFICULTY_LEVELS.find((d) => !passed.includes(d)) ?? null;
+}

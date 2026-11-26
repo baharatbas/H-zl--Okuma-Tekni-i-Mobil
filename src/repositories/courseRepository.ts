@@ -1,6 +1,6 @@
 import type { SqlDb } from '../db/types';
 import { Level } from '../core/levels';
-import { buildCourse, LessonStep, LessonType, isStepUnlocked } from '../core/course';
+import { buildCourse, LessonStep, LessonType, isStepUnlocked, nextDifficulty, PASS_SCORE } from '../core/course';
 import { buildExamCourse } from '../core/exam/course';
 import { parseSettings } from '../core/settings';
 
@@ -8,6 +8,8 @@ export interface LessonRow extends LessonStep {
   id: number;
   isCompleted: boolean;
   unlocked: boolean;
+  /** Egzersiz adımında bu kursta geçilmiş zorluk seviyeleri. */
+  passedLevels: number[];
 }
 
 export interface CourseView {
@@ -26,6 +28,8 @@ export interface CourseRepository {
   /** Kurs silinir (baştan başlatma için ön adım). */
   reset(): void;
   completeLesson(courseId: number, orderIndex: number): CourseView;
+  /** Egzersiz adımını yalnızca tüm zorluk seviyeleri geçildiyse tamamlar. */
+  completeExerciseIfPassed(courseId: number, orderIndex: number): CourseView;
 }
 
 const TITLES: Record<Level, string> = {
@@ -68,6 +72,12 @@ export function createCourseRepository(db: SqlDb): CourseRepository {
       difficulty: r.difficulty,
       isCompleted: r.is_completed === 1,
       unlocked: isStepUnlocked(base, r.order_index),
+      passedLevels: db
+        .getAllSync<{ difficulty: number }>(
+          'SELECT DISTINCT difficulty FROM exercise_sessions WHERE course_lesson_id = ? AND score >= ? ORDER BY difficulty',
+          [r.id, PASS_SCORE],
+        )
+        .map((x) => x.difficulty),
     }));
 
     return {
@@ -110,6 +120,13 @@ export function createCourseRepository(db: SqlDb): CourseRepository {
 
     reset() {
       db.runSync('DELETE FROM courses');
+    },
+
+    completeExerciseIfPassed(courseId, orderIndex) {
+      const view = load(courseId)!;
+      const lesson = view.lessons.find((l) => l.orderIndex === orderIndex);
+      if (!lesson || lesson.isCompleted || nextDifficulty(lesson.passedLevels) !== null) return view;
+      return this.completeLesson(courseId, orderIndex);
     },
 
     completeLesson(courseId, orderIndex) {

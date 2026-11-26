@@ -128,9 +128,13 @@ bir işlem içinde çalıştırır.
 - Sorular ve teknikler `src/content/exam/` içindedir ve özgündür. Yeni soru eklemek için `questions.ts` dosyasına ekleyin; testler şık ve cevap tutarlılığını denetler.
 - Denemeler `paragraph_attempts` tablosunda tutulur (şema sürüm 2).
 
+## Kurs ilerlemesi
+
+Kurstaki bir egzersiz adımı, 5 zorluk seviyesinin hepsi en az 60 puanla geçilince tamamlanır ve sıradaki adım açılır. Egzersiz sekmesinden oynanan oturumlar kurs adımına sayılmaz.
+
 ## Kalıcı veri
 
 - Tüm kullanıcı verisi cihazdaki SQLite veritabanındadır (`hizlioku.db`): profil, ad, profil fotoğrafı (`profile_photo`), ayarlar, kurs ilerlemesi, test / okuma / egzersiz / paragraf sonuçları, günlük hedef ve seri.
-- Şema sürümü 3. Kullanıcı bir metni sildiğinde metin yalnızca gizlenir (`deleted_at`); geçmiş sonuçlar korunur.
+- Şema sürümü 4. Kullanıcı bir metni sildiğinde metin yalnızca gizlenir (`deleted_at`); geçmiş sonuçlar korunur.
 - Okuma hızı grafiği yalnızca testlerden hesaplanır: kelime sayısı ÷ okuma süresi (sorular hariç). 20–1200 kelime/dk dışındaki ölçümler grafiğe alınmaz.
 - Uygulama silinirse cihazdaki veriler de silinir (sunucu ve yedekleme yoktur).

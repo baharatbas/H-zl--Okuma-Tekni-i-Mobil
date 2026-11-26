@@ -153,6 +153,14 @@ export const MIGRATIONS: Migration[] = [
       )`,
     ],
   },
+  {
+    version: 4,
+    name: 'exercise_session_lesson',
+    statements: [
+      'ALTER TABLE exercise_sessions ADD COLUMN course_lesson_id INTEGER',
+      'CREATE INDEX IF NOT EXISTS idx_exercise_sessions_lesson ON exercise_sessions(course_lesson_id)',
+    ],
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

@@ -11,7 +11,7 @@ import { useAppStore } from '../../store/appStore';
 import { radius, spacing, useTheme } from '../../theme';
 import { t } from '../../i18n';
 import { lessonRoute, lessonStepIcon, lessonTitle } from '../../services/lessons';
-import { unitMeta } from '../../core/course';
+import { DIFFICULTY_LEVELS, unitMeta } from '../../core/course';
 import { haptic } from '../../services/haptics';
 import { examRef, isTrackMismatch } from '../../core/exam/course';
 import { useTrack } from '../../hooks/useTrack';
@@ -149,7 +149,13 @@ export default function CourseScreen() {
                 {lessons.map((lesson, i) => {
                   const locked = !lesson.unlocked;
                   const current = next?.id === lesson.id;
-                  const status = lesson.isCompleted ? t('course.doneBadge') : locked ? t('course.locked') : typeLabel(lesson);
+                  const status = lesson.isCompleted
+                    ? t('course.doneBadge')
+                    : locked
+                      ? t('course.locked')
+                      : lesson.type === 'exercise'
+                        ? t('course.levelProgress', { done: lesson.passedLevels.length, total: DIFFICULTY_LEVELS.length })
+                        : typeLabel(lesson);
                   const nodeBg = lesson.isCompleted ? colors.success : current ? tint : colors.surfaceAlt;
                   const nodeFg = lesson.isCompleted || current ? '#FFFFFF' : colors.textMuted;
                   return (

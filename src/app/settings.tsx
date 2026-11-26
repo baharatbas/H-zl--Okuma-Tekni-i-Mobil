@@ -6,27 +6,11 @@ import { repositories } from '../repositories';
 import { useAppStore } from '../store/appStore';
 import { syncDailyReminder } from '../services/notifications';
 import { spacing, useTheme } from '../theme';
-import { EXAMS, ExamTarget } from '../core/exam/types';
+import { TrackSelector } from '../components/TrackSelector';
 import { t } from '../i18n';
 import type { LearningMode, ThemeMode } from '../core/settings';
 
 const FONT_SCALES = [1, 1.15, 1.3, 1.5];
-
-/** Yolu ya da sınavı değiştirir; kurs yolu değiştiyse yeni kurs oluşturulur (onayla). */
-function changeTrack(patch: { purpose?: 'exam' | 'self'; examTarget?: ExamTarget }) {
-  const { settings, level, updateSettings } = useAppStore.getState();
-  const wasExam = settings.purpose === 'exam';
-  const willBeExam = (patch.purpose ?? settings.purpose) === 'exam';
-  const apply = () => {
-    updateSettings(patch);
-    if (wasExam !== willBeExam && level) repositories().course.start(level);
-  };
-  if (wasExam === willBeExam || !level) return apply();
-  Alert.alert(t('exam.switchTitle'), t('exam.switchMessage'), [
-    { text: t('common.cancel'), style: 'cancel' },
-    { text: t('exam.switchConfirm'), onPress: apply },
-  ]);
-}
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -60,19 +44,8 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }} style={{ backgroundColor: colors.background }}>
-      <Card style={{ gap: spacing.md }}>
-        <Text_ variant="heading">{t('exam.trackTitle')}</Text_>
-        <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' }}>
-          <Chip label={t('exam.trackSelf')} selected={settings.purpose !== 'exam'} onPress={() => changeTrack({ purpose: 'self' })} />
-          <Chip label={t('exam.trackExam')} selected={settings.purpose === 'exam'} onPress={() => changeTrack({ purpose: 'exam' })} />
-        </View>
-        {settings.purpose === 'exam' ? (
-          <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' }}>
-            {(Object.keys(EXAMS) as ExamTarget[]).map((key) => (
-              <Chip key={key} label={EXAMS[key].label} selected={settings.examTarget === key} onPress={() => changeTrack({ examTarget: key })} />
-            ))}
-          </View>
-        ) : null}
+      <Card>
+        <TrackSelector />
       </Card>
 
       <Card style={{ gap: spacing.md }}>

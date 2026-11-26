@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Button, Card, Empty, Stepper, Text_ } from '../../components/ui';
 import { ExerciseGame } from '../../components/exercises/games';
 import { lessonRoute, lessonTitle } from '../../services/lessons';
+import { DIFFICULTY_LEVELS, nextDifficulty, PASS_SCORE } from '../../core/course';
 import { EXERCISES, isExerciseKey } from '../../core/exercises/registry';
 import type { ExerciseResult, ExerciseSettings } from '../../core/exercises/types';
 import { repositories } from '../../repositories';
@@ -31,11 +32,14 @@ export default function ExerciseScreen() {
   const meta = exerciseKey ? EXERCISES[exerciseKey] : null;
 
   const [phase, setPhase] = useState<Phase>('setup');
-  // Kurstan gelindiyse zorluk, kurs adımından alınır.
+  // Kurstan gelindiyse adım okunur; geçilmemiş en kolay seviye seçili gelir.
+  const findStep = () =>
+    lesson === undefined ? undefined : repositories().course.getActive()?.lessons.find((l) => l.orderIndex === Number(lesson));
+  const [passed, setPassed] = useState<number[]>(() => findStep()?.passedLevels ?? []);
   const [draft, setDraft] = useState<ExerciseSettings | null>(() => {
     if (!meta) return null;
-    const step = lesson === undefined ? undefined : repositories().course.getActive()?.lessons.find((l) => l.orderIndex === Number(lesson));
-    return step ? { ...meta.defaults, difficulty: step.difficulty } : { ...meta.defaults };
+    const step = findStep();
+    return step ? { ...meta.defaults, difficulty: nextDifficulty(step.passedLevels) ?? step.difficulty } : { ...meta.defaults };
   });
   const [nextStep, setNextStep] = useState<{ title: string; route: string } | null>(null);
   const [settings, setSettings] = useState<ExerciseSettings | null>(null);
@@ -51,17 +55,28 @@ export default function ExerciseScreen() {
     setResult(r);
     setPhase('result');
     haptic('success');
-    repositories().exercises.recordSession(exerciseKey, r, { speedMs: s.speedMs, difficulty: s.difficulty });
+    const repos = repositories();
+    const step = findStep();
+    repos.exercises.recordSession(exerciseKey, r, { speedMs: s.speedMs, difficulty: s.difficulty, courseLessonId: step?.id });
     recordActivity(r.durationMs);
-    if (lesson !== undefined) {
-      const repos = repositories();
-      const course = repos.course.getActive();
-      if (course) {
-        const updated = repos.course.completeLesson(course.id, Number(lesson));
-        const next = updated.lessons.find((l) => !l.isCompleted && l.unlocked);
-        setNextStep(next ? { title: lessonTitle(next), route: lessonRoute(next) } : null);
-      }
+    const course = lesson === undefined ? null : repos.course.getActive();
+    if (course) {
+      const updated = repos.course.completeExerciseIfPassed(course.id, Number(lesson));
+      const current = updated.lessons.find((l) => l.orderIndex === Number(lesson));
+      setPassed(current?.passedLevels ?? []);
+      const next = current?.isCompleted ? updated.lessons.find((l) => !l.isCompleted && l.unlocked) : undefined;
+      setNextStep(next ? { title: lessonTitle(next), route: lessonRoute(next) } : null);
     }
+  };
+
+  // Sonuçtan sıradaki geçilmemiş seviyeye geçer.
+  const playLevel = (difficulty: number) => {
+    const next = { ...draft, difficulty };
+    setDraft(next);
+    setSettings(next);
+    setResult(null);
+    setGameKey((k) => k + 1);
+    setPhase('play');
   };
 
   const play = () => {
@@ -124,23 +139,27 @@ export default function ExerciseScreen() {
           <Card style={{ gap: spacing.lg }}>
             <View style={{ gap: spacing.sm }}>
               <Text_ variant="label" muted>{t('exercises.difficulty')}</Text_>
+              {lesson !== undefined ? (
+                <Text_ variant="caption" muted>{t('exercises.levelRule', { done: passed.length, total: DIFFICULTY_LEVELS.length, score: PASS_SCORE })}</Text_>
+              ) : null}
               <View style={{ flexDirection: 'row', gap: spacing.sm }}>
                 {[1, 2, 3, 4, 5].map((d) => (
                   <Pressable
                     key={d}
                     accessibilityRole="button"
-                    accessibilityLabel={`${t('exercises.difficulty')} ${d}`}
+                    accessibilityLabel={`${t('exercises.difficulty')} ${d}${passed.includes(d) ? `, ${t('exercises.levelPassedA11y')}` : ''}`}
                     accessibilityState={{ selected: draft.difficulty === d }}
                     onPress={() => setDraft({ ...draft, difficulty: d })}
                     style={segment(draft.difficulty === d)}
                   >
                     <Text_ variant="label" style={{ color: draft.difficulty === d ? colors.onPrimary : colors.text }}>{String(d)}</Text_>
+                    {passed.includes(d) ? <Ionicons name="checkmark-circle" size={14} color={draft.difficulty === d ? colors.onPrimary : colors.success} /> : null}
                   </Pressable>
                 ))}
               </View>
             </View>
 
-            {maxSpeed > 0 && (
+            {maxSpeed > 0 && lesson === undefined && (
               <Stepper
                 label={meta.speedLabel}
                 value={draft.speedMs}
@@ -177,7 +196,12 @@ export default function ExerciseScreen() {
       )}
 
       {phase === 'result' && result && (
-        <ResultView result={result} onRetry={play} onBack={() => router.back()} scale={scale} next={nextStep} fromCourse={lesson !== undefined} />
+        <ResultView result={result} onRetry={play} onBack={() => router.back()} scale={scale} next={nextStep} fromCourse={lesson !== undefined}
+          course={
+            lesson === undefined || !settings
+              ? null
+              : { passed, level: settings.difficulty, ok: result.score >= PASS_SCORE, onPlayLevel: playLevel }
+          } />
       )}
     </ScrollView>
   );
@@ -190,6 +214,7 @@ function ResultView({
   scale,
   next,
   fromCourse,
+  course,
 }: {
   result: ExerciseResult;
   onRetry: () => void;
@@ -197,6 +222,7 @@ function ResultView({
   scale: (n: number) => number;
   next: { title: string; route: string } | null;
   fromCourse: boolean;
+  course: { passed: number[]; level: number; ok: boolean; onPlayLevel: (d: number) => void } | null;
 }) {
   const { colors } = useTheme();
   const stars = starRating(result.score);
@@ -229,10 +255,32 @@ function ResultView({
       </View>
 
       <Text_ variant="caption" muted style={{ textAlign: 'center' }}>{t('exercises.saved')}</Text_>
+      {course ? (
+        <Card style={{ gap: spacing.md }}>
+          <Text_ variant="heading">
+            {course.ok ? t('exercises.levelDone', { level: course.level }) : t('exercises.levelFailed', { level: course.level, score: PASS_SCORE })}
+          </Text_>
+          <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+            {DIFFICULTY_LEVELS.map((d) => {
+              const done = course.passed.includes(d);
+              return (
+                <View key={d} accessible accessibilityLabel={`${t('exercises.difficulty')} ${d}${done ? `, ${t('exercises.levelPassedA11y')}` : ''}`} style={{ flex: 1, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', backgroundColor: done ? colors.success : colors.surfaceAlt }}>
+                  {done ? <Ionicons name="checkmark" size={20} color="#FFFFFF" /> : <Text_ variant="label" muted>{String(d)}</Text_>}
+                </View>
+              );
+            })}
+          </View>
+          {nextDifficulty(course.passed) !== null ? (
+            <Button title={t('exercises.playLevel', { level: nextDifficulty(course.passed)! })} onPress={() => course.onPlayLevel(nextDifficulty(course.passed)!)} />
+          ) : (
+            <Text_ muted>{t('exercises.allLevelsDone')}</Text_>
+          )}
+        </Card>
+      ) : null}
       {next ? (
         <Button title={`${t('exercises.nextStep')}: ${next.title}`} onPress={() => router.replace(next.route as any)} />
       ) : null}
-      <Button title={t('exercises.retry')} variant={next ? 'secondary' : 'primary'} onPress={onRetry} />
+      <Button title={t('exercises.retry')} variant={next || course ? 'secondary' : 'primary'} onPress={onRetry} />
       <Button title={fromCourse ? t('common.close') : t('exercises.back')} variant="ghost" onPress={onBack} />
     </View>
   );

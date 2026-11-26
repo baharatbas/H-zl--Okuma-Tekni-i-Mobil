@@ -209,6 +209,7 @@ export const tr = {
     startReading: 'Okumaya başla',
   },
   course: {
+    levelProgress: '{done}/{total} seviye geçildi',
     eyebrow: 'Kişisel kursun',
     begin: 'Kursa başla',
     locked: 'Kilitli',
@@ -230,6 +231,12 @@ export const tr = {
     noCourse: 'Henüz kursun yok. Seviyene göre bir kurs oluşturalım.',
   },
   exercises: {
+    levelRule: 'Bu adım {total} seviyenin hepsi geçilince tamamlanır ({done}/{total}). Geçmek için en az {score} puan.',
+    levelPassedA11y: 'geçildi',
+    levelDone: 'Seviye {level} geçildi',
+    levelFailed: 'Seviye {level} geçilemedi. En az {score} puan gerekiyor.',
+    playLevel: 'Seviye {level} ile devam et',
+    allLevelsDone: 'Tüm seviyeleri geçtin, adım tamamlandı.',
     getReady: 'Hazır ol',
     hitCount: 'İsabet: {value}',
     targetColor: 'Hedef renk: {color}',

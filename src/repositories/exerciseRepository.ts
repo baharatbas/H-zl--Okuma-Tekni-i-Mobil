@@ -17,7 +17,7 @@ export interface ExerciseRepository {
   recordSession(
     key: ExerciseKey,
     result: ExerciseResult,
-    settings: { speedMs: number; difficulty: number },
+    settings: { speedMs: number; difficulty: number; courseLessonId?: number },
     startedAt?: string,
   ): number;
   listSessions(key?: ExerciseKey, limit?: number): ExerciseSessionRecord[];
@@ -31,8 +31,8 @@ export function createExerciseRepository(db: SqlDb): ExerciseRepository {
       if (!ex) throw new Error(`Bilinmeyen egzersiz: ${key}`);
       const res = db.runSync(
         `INSERT INTO exercise_sessions
-         (exercise_id, started_at, duration_ms, score, accuracy, speed_setting, difficulty, avg_response_ms)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+         (exercise_id, started_at, duration_ms, score, accuracy, speed_setting, difficulty, avg_response_ms, course_lesson_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           ex.id,
           startedAt,
@@ -42,6 +42,7 @@ export function createExerciseRepository(db: SqlDb): ExerciseRepository {
           Math.round(settings.speedMs),
           settings.difficulty,
           result.avgResponseMs === null ? null : Math.round(result.avgResponseMs),
+          settings.courseLessonId ?? null,
         ],
       );
       return res.lastInsertRowId;

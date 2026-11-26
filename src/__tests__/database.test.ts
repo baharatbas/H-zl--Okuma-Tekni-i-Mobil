@@ -31,8 +31,8 @@ function setup() {
 describe('migrasyonlar', () => {
   it('şemayı en son sürüme getirir ve tekrar çalıştırıldığında hiçbir şey uygulamaz', () => {
     const db = openMemoryDb();
-    expect(migrate(db)).toBe(3);
-    expect(currentSchemaVersion(db)).toBe(3);
+    expect(migrate(db)).toBe(4);
+    expect(currentSchemaVersion(db)).toBe(4);
     expect(migrate(db)).toBe(0);
   });
 
@@ -228,5 +228,40 @@ describe('kalıcılık ve doğru grafik', () => {
     expect(profile.getPhoto()).toBe('data:image/jpeg;base64,AAAA');
     profile.setPhoto(null);
     expect(profile.getPhoto()).toBeNull();
+  });
+});
+
+describe('egzersiz adımında seviye kuralı', () => {
+  const result = (score: number) => ({ score, accuracy: score / 100, avgResponseMs: null, durationMs: 1000 });
+
+  it('adım ancak 5 seviyenin hepsi en az 60 puanla geçilince tamamlanır', () => {
+    const { course, exercises } = setup();
+    const c = course.start('beginner');
+    const step = c.lessons[0];
+    const play = (difficulty: number, score: number) => {
+      exercises.recordSession('tracking', result(score), { speedMs: 1000, difficulty, courseLessonId: step.id });
+      return course.completeExerciseIfPassed(c.id, 0);
+    };
+    play(1, 100);
+    play(1, 90); // aynı seviye bir kez sayılır
+    play(2, 59); // yetersiz
+    let view = play(3, 60);
+    expect(view.lessons[0].passedLevels).toEqual([1, 3]);
+    expect(view.lessons[0].isCompleted).toBe(false);
+    expect(view.lessons[1].unlocked).toBe(false);
+    play(2, 70);
+    play(4, 80);
+    view = play(5, 65);
+    expect(view.lessons[0].isCompleted).toBe(true);
+    expect(view.lessons[1].unlocked).toBe(true);
+  });
+
+  it('kurs dışında oynamak adıma sayılmaz ve yeni kurs sıfırdan başlar', () => {
+    const { course, exercises } = setup();
+    const c = course.start('beginner');
+    exercises.recordSession('tracking', result(100), { speedMs: 1000, difficulty: 1 });
+    expect(course.getActive()!.lessons[0].passedLevels).toEqual([]);
+    exercises.recordSession('tracking', result(100), { speedMs: 1000, difficulty: 1, courseLessonId: c.lessons[0].id });
+    expect(course.start('beginner').lessons[0].passedLevels).toEqual([]);
   });
 });

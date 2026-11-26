@@ -16,6 +16,7 @@ import { TypeList } from '../../components/ParagraphHub';
 import { Attempt, stats } from '../../core/exam/practice';
 import { useTrack } from '../../hooks/useTrack';
 import { ProfileCard } from '../../components/ProfileCard';
+import { TrackSelector } from '../../components/TrackSelector';
 
 interface ProgressData {
   summary: ProgressSummary;
@@ -40,20 +41,20 @@ export default function ProgressScreen() {
   const [data, setData] = useState<ProgressData | null>(null);
   const [metric, setMetric] = useState<Metric>('speed');
 
-  useFocusEffect(
-    useCallback(() => {
-      const repos = repositories();
-      setData({
-        summary: repos.progress.getSummary(),
-        series: repos.progress.getPerformanceSeries(30),
-        recent: repos.exercises.listSessions(undefined, 5),
-        week: repos.progress.getRecentMinutes(localDateString(), 7),
-        attempts: repos.paragraphs.list(),
-        streak: repos.progress.getStreak(localDateString()).current,
-        bestStreak: repos.progress.getStreak(localDateString()).state.bestStreak,
-      });
-    }, []),
-  );
+  const load = useCallback(() => {
+    const repos = repositories();
+    setData({
+      summary: repos.progress.getSummary(),
+      series: repos.progress.getPerformanceSeries(30),
+      recent: repos.exercises.listSessions(undefined, 5),
+      week: repos.progress.getRecentMinutes(localDateString(), 7),
+      attempts: repos.paragraphs.list(),
+      streak: repos.progress.getStreak(localDateString()).current,
+      bestStreak: repos.progress.getStreak(localDateString()).state.bestStreak,
+    });
+  }, []);
+
+  useFocusEffect(load);
 
   if (!data) return <View style={{ flex: 1, backgroundColor: colors.background }} />;
 
@@ -92,6 +93,10 @@ export default function ProgressScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background, paddingTop: insets.top }}>
       <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl, paddingBottom: spacing.xl }}>
         <ProfileCard streak={data.streak} bestStreak={data.bestStreak} />
+
+      <Card>
+        <TrackSelector onChanged={load} />
+      </Card>
 
       <Text_ variant="title" accessibilityRole="header">{t('progress.title')}</Text_>
 
