@@ -5,6 +5,7 @@ import { Button, Card, Empty, Screen, Text_ } from '../../components/ui';
 import { ReadingTest, ReadingTestResult } from '../../components/ReadingTest';
 import { repositories } from '../../repositories';
 import { recordActivity } from '../../services/activity';
+import { completeDaily } from '../../services/daily';
 import { spacing, useTheme } from '../../theme';
 import { t } from '../../i18n';
 import { lessonNote } from '../../content/lessonNotes';
@@ -12,7 +13,7 @@ import { comprehensionPercent } from '../../core/metrics';
 
 /** Metin testi: okuma hızı ve anlama oranı ölçülür ve kaydedilir. */
 export default function TextTestScreen() {
-  const { id, lesson } = useLocalSearchParams<{ id: string; lesson?: string }>();
+  const { id, lesson, daily } = useLocalSearchParams<{ id: string; lesson?: string; daily?: string }>();
   const { colors } = useTheme();
   const repos = useMemo(() => repositories(), []);
   const text = useMemo(() => repos.texts.get(Number(id)), [repos, id]);
@@ -32,6 +33,7 @@ export default function TextTestScreen() {
   const handleFinish = (r: ReadingTestResult) => {
     repos.texts.recordTestResult(test.id, r.outcome, r.durationMs, r.startedAt);
     recordActivity(r.durationMs);
+    completeDaily(daily);
     if (lesson !== undefined) {
       const course = repos.course.getActive();
       if (course) repos.course.completeLesson(course.id, Number(lesson));

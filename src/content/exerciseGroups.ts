@@ -18,7 +18,19 @@ export const EXERCISE_GROUPS: { id: string; title: string; subtitle: string; key
     id: 'reading',
     title: 'Okuma teknikleri',
     subtitle: 'Tarama, göz gezdirme, kelime',
-    keys: ['scan_search', 'line_scan', 'skim_read', 'synonym_match'],
+    keys: ['scan_search', 'line_scan', 'skim_read', 'phrase_group'],
+  },
+  {
+    id: 'meaning',
+    title: 'Anlam ve kelime',
+    subtitle: 'Bağlamı kur, anlamı yakala',
+    keys: ['synonym_match', 'missing_word', 'sentence_finish'],
+  },
+  {
+    id: 'games',
+    title: 'Oyunlar',
+    subtitle: 'Eğlenirken dikkat ve okuma akıcılığı',
+    keys: ['word_hunt', 'word_memory', 'word_find', 'typo_find', 'real_or_fake', 'true_false', 'maze_read', 'word_chain'],
   },
 ];
 
@@ -37,4 +49,15 @@ export const SHORT_SKILL: Record<ExerciseKey, string> = {
   line_scan: 'Satır bulma',
   skim_read: 'Ana fikri yakala',
   synonym_match: 'Kelime dağarcığı',
+  real_or_fake: 'Sözcük tanıma',
+  true_false: 'Hızlı cümle',
+  maze_read: 'Akıcı anlama',
+  word_chain: 'Sözcük ayırma',
+  word_find: 'Doğru sözcüğü bul',
+  phrase_group: 'Anlam öbekleri',
+  missing_word: 'Bağlamdan bul',
+  sentence_finish: 'Anlam akışı',
+  word_memory: 'Kelime hatırla',
+  typo_find: 'Yazım dikkati',
+  word_hunt: 'Harflerde sözcük ara',
 };

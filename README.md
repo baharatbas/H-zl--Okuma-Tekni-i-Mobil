@@ -134,6 +134,14 @@ Kurstaki bir egzersiz adımı, 5 zorluk seviyesinin hepsi en az 60 puanla geçil
 
 Genel kursta temel ünitelerin ardından 8 taktik ünitesi gelir (taktik dersi → egzersiz → okuma → test); içerik `src/content/tactics.ts` dosyasındadır. Süren kurslar, tamamlanan adımlar korunarak yeni derslerle uzatılır.
 
+## Günlük antrenman
+
+Ana sayfada her gün 5 görev vardır: görsel dikkat, kelime tanıma, okuma akıcılığı, anlama testi ve hafıza (20/20/30/30/20 XP). Plan `src/core/dailyPlan.ts` içinde üretilir ve `daily_tasks` tablosunda saklanır (şema sürümü 7). Egzersiz zorluğu son iki puana, metin uzunluğu son anlama oranına göre değişir; önceki günün egzersiz ve metinleri tekrar edilmez.
+
+## Kelime oyunları
+
+`word_find`, `phrase_group`, `missing_word`, `sentence_finish`, `word_memory`, `typo_find`, `word_hunt`, `real_or_fake`, `true_false`, `maze_read`, `word_chain`: mantık `src/core/exercises/wordGames.ts`, içerik `src/content/wordGames.ts`, ekranlar `src/components/exercises/words.tsx`. Bu çalışmalar genel okuma hızını ya da zekâyı artırdığı iddiasıyla sunulmaz.
+
 ## Premium
 
 Beş sekmenin üstünde premium kartı görünür; `useIsPremium()` doğruysa gizlenir. Satın alma henüz bağlı değildir ve fiyatlar örnektir (`src/components/Premium.tsx`). RevenueCat eklenince `src/store/premiumStore.ts` içindeki `setPremium` yetki durumuna göre çağrılmalı, fiyatlar mağazadan okunmalıdır. RevenueCat yerel modül içerdiği için geliştirme derlemesi gerekir ve satın alma verisi sunucuya gider; gizlilik metni buna göre güncellenmelidir.

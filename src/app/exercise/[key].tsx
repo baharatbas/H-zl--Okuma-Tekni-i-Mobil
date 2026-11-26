@@ -11,6 +11,7 @@ import { EXERCISES, isExerciseKey } from '../../core/exercises/registry';
 import type { ExerciseResult, ExerciseSettings } from '../../core/exercises/types';
 import { repositories } from '../../repositories';
 import { recordActivity } from '../../services/activity';
+import { completeDaily } from '../../services/daily';
 import { haptic } from '../../services/haptics';
 import { MIN_TOUCH, radius, spacing, useTheme } from '../../theme';
 import { t } from '../../i18n';
@@ -26,7 +27,7 @@ export function starRating(score: number): 1 | 2 | 3 {
 
 /** Egzersiz: tanıtım → ayarlar → oyun → sonuç. Sade, tek vurgu rengi. */
 export default function ExerciseScreen() {
-  const { key, lesson } = useLocalSearchParams<{ key: string; lesson?: string }>();
+  const { key, lesson, daily, difficulty } = useLocalSearchParams<{ key: string; lesson?: string; daily?: string; difficulty?: string }>();
   const { colors, scale } = useTheme();
   const exerciseKey = typeof key === 'string' && isExerciseKey(key) ? key : null;
   const meta = exerciseKey ? EXERCISES[exerciseKey] : null;
@@ -39,7 +40,7 @@ export default function ExerciseScreen() {
   const [draft, setDraft] = useState<ExerciseSettings | null>(() => {
     if (!meta) return null;
     const step = findStep();
-    return step ? { ...meta.defaults, difficulty: nextDifficulty(step.passedLevels) ?? step.difficulty } : { ...meta.defaults };
+    return step ? { ...meta.defaults, difficulty: nextDifficulty(step.passedLevels) ?? step.difficulty } : { ...meta.defaults, ...(difficulty ? { difficulty: Number(difficulty) } : null) };
   });
   const [nextStep, setNextStep] = useState<{ title: string; route: string } | null>(null);
   const [settings, setSettings] = useState<ExerciseSettings | null>(null);
@@ -59,6 +60,7 @@ export default function ExerciseScreen() {
     const step = findStep();
     repos.exercises.recordSession(exerciseKey, r, { speedMs: s.speedMs, difficulty: s.difficulty, courseLessonId: step?.id });
     recordActivity(r.durationMs);
+    completeDaily(daily);
     const course = lesson === undefined ? null : repos.course.getActive();
     if (course) {
       const updated = repos.course.completeExerciseIfPassed(course.id, Number(lesson));

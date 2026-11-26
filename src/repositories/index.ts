@@ -6,6 +6,7 @@ import { createExerciseRepository, ExerciseRepository } from './exerciseReposito
 import { createTextRepository, TextRepository } from './textRepository';
 import { createProgressRepository, ProgressRepository } from './progressRepository';
 import { createParagraphRepository, ParagraphRepository } from './paragraphRepository';
+import { createDailyRepository, DailyRepository } from './dailyRepository';
 
 /**
  * Tüm veri erişimi bu katman üzerinden yapılır. Ekranlar SQL çağırmaz.
@@ -18,6 +19,7 @@ export interface Repositories {
   texts: TextRepository;
   progress: ProgressRepository;
   paragraphs: ParagraphRepository;
+  daily: DailyRepository;
 }
 
 export function createRepositories(db: SqlDb): Repositories {
@@ -28,6 +30,7 @@ export function createRepositories(db: SqlDb): Repositories {
     texts: createTextRepository(db),
     progress: createProgressRepository(db),
     paragraphs: createParagraphRepository(db),
+    daily: createDailyRepository(db),
   };
 }
 
@@ -40,3 +43,4 @@ export * from './exerciseRepository';
 export * from './textRepository';
 export * from './progressRepository';
 export * from './profileRepository';
+export * from './dailyRepository';

@@ -16,7 +16,7 @@ import type { ReadingMode } from '../../core/settings';
  * "Oyna" ile defter görünümlü okuma ekranı açılır.
  */
 export default function ReaderSetupScreen() {
-  const { id, lesson } = useLocalSearchParams<{ id: string; lesson?: string }>();
+  const { id, lesson, daily } = useLocalSearchParams<{ id: string; lesson?: string; daily?: string }>();
   const { colors, scale } = useTheme();
   const textId = Number(id);
   const text = useMemo(() => repositories().texts.get(textId), [textId]);
@@ -122,7 +122,7 @@ export default function ReaderSetupScreen() {
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={t('reader.startReading')}
-        onPress={() => router.push(`/reading/${text.id}${lesson !== undefined ? `?lesson=${lesson}` : ''}` as any)}
+        onPress={() => router.push(`/reading/${text.id}${lesson !== undefined ? `?lesson=${lesson}` : daily !== undefined ? `?daily=${daily}` : ''}` as any)}
         style={({ pressed }) => ({
           minHeight: 56,
           borderRadius: radius.lg,

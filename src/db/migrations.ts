@@ -180,6 +180,23 @@ export const MIGRATIONS: Migration[] = [
            AND n.order_index = course_lessons.order_index + 1 AND n.is_completed = 0)`,
     ],
   },
+  {
+    version: 7,
+    name: 'daily_tasks',
+    statements: [
+      `CREATE TABLE IF NOT EXISTS daily_tasks (
+        date TEXT NOT NULL,
+        position INTEGER NOT NULL,
+        kind TEXT NOT NULL,
+        ref TEXT NOT NULL,
+        difficulty INTEGER NOT NULL,
+        minutes INTEGER NOT NULL,
+        xp INTEGER NOT NULL,
+        completed_at TEXT,
+        PRIMARY KEY (date, position)
+      )`,
+    ],
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

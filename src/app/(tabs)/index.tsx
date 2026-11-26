@@ -5,14 +5,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Card, Text_ } from '../../components/ui';
 import { PremiumBanner } from '../../components/Premium';
-import { ProgressRing } from '../../components/ProgressRing';
+import { DailyTraining } from '../../components/DailyTraining';
 import { repositories } from '../../repositories';
-import type { CourseView, LessonRow } from '../../repositories';
+import type { DailyTaskRow } from '../../repositories';
 import { useAppStore } from '../../store/appStore';
 import { radius, spacing, useTheme } from '../../theme';
 import { t } from '../../i18n';
-import { lessonGoal, lessonRoute, lessonStepIcon, lessonTitle } from '../../services/lessons';
-import { goalProgress, localDateString } from '../../core/streak';
+import { localDateString } from '../../core/streak';
 import { greetingKey } from '../../core/greeting';
 import { DailySetCard } from '../../components/ParagraphHub';
 import { stats, Stats, weakestType } from '../../core/exam/practice';
@@ -21,10 +20,8 @@ import { TECHNIQUES } from '../../content/exam/techniques';
 import { useTrack } from '../../hooks/useTrack';
 
 interface HomeData {
-  course: CourseView | null;
-  upcoming: LessonRow[];
-  done: number;
-  target: number;
+  plan: DailyTaskRow[];
+  totalXp: number;
   streak: number;
   week: { date: string; minutes: number }[];
   lastWpm: number | null;
@@ -39,12 +36,10 @@ const GREEN = '#3D8B5A';
 const BLUE = '#3B75AE';
 const PURPLE = '#76609E';
 
-/** Tahmini süre (dk) adım türüne göre. */
-const minutesFor = (l: LessonRow) => (l.type === 'exercise' ? 2 : l.type === 'reading' ? 4 : 3);
 const weekday = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString('tr-TR', { weekday: 'short' });
 
 /**
- * Bugün sekmesi: selamlama, günlük hedef ve hafta, sıradaki adım, okuma özeti ve kısa yollar.
+ * Bugün sekmesi: selamlama, günlük antrenman ve hafta, okuma özeti ve kısa yollar.
  * Üst başlık çubuğu yoktur; Ayarlar sayfanın sonundadır.
  */
 export default function TodayScreen() {
@@ -53,22 +48,17 @@ export default function TodayScreen() {
   const { isExam, exam } = useTrack();
   const level = useAppStore((s) => s.level);
   const displayName = useAppStore((s) => s.settings.displayName);
-  const targetMinutes = useAppStore((s) => s.settings.dailyGoalMinutes);
   const [data, setData] = useState<HomeData | null>(null);
 
   const load = useCallback(() => {
     const repos = repositories();
     const today = localDateString();
-    const course = repos.course.getActive();
-    const goal = repos.progress.getDailyGoal(today, targetMinutes);
     const series = repos.progress.getPerformanceSeries(60);
     const last = series[series.length - 1];
     const attempts = repos.paragraphs.list();
     setData({
-      course,
-      upcoming: course ? course.lessons.filter((l) => !l.isCompleted).slice(0, 3) : [],
-      done: goal.completedMinutes,
-      target: goal.targetMinutes,
+      plan: repos.daily.getPlan(today, level ?? 'beginner'),
+      totalXp: repos.daily.totalXp(),
       streak: repos.progress.getStreak(today).current,
       week: repos.progress.getRecentMinutes(today, 7),
       lastWpm: last ? Math.round(last.wpm) : null,
@@ -77,24 +67,12 @@ export default function TodayScreen() {
       paragraph: stats(attempts),
       weak: weakestType(attempts),
     });
-  }, [targetMinutes]);
+  }, [level]);
 
   useFocusEffect(load);
 
   const now = new Date();
   const greeting = t(`today.${greetingKey(now.getHours())}`);
-  const done = data?.done ?? 0;
-  const target = data?.target ?? targetMinutes;
-  const progress = goalProgress(done, target);
-  const next = data?.upcoming[0] ?? null;
-  const later = data?.upcoming.slice(1) ?? [];
-
-  const startCourse = () => {
-    if (!level) return router.push('/level-test');
-    repositories().course.start(level);
-    load();
-  };
-
   return (
     <View style={{ flex: 1, backgroundColor: colors.background, paddingTop: insets.top }}>
       <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl, paddingBottom: spacing.xl }} showsVerticalScrollIndicator={false}>
@@ -112,33 +90,25 @@ export default function TodayScreen() {
           </View>
         </View>
 
-        {/* Günlük hedef ve hafta */}
-        <View style={{ borderRadius: radius.lg, backgroundColor: colors.primarySoft, padding: spacing.lg, gap: spacing.lg }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.lg }}>
-            <ProgressRing value={progress} size={92} trackColor={colors.surface} label={`%${Math.round(progress * 100)}`} />
-            <View style={{ flex: 1, gap: 2 }}>
-              <Text_ variant="caption" muted>{t('home.dailyGoal')}</Text_>
-              <Text_ variant="heading">
-                {progress >= 1 ? t('home.goalReached') : t('home.goalRemaining', { minutes: Math.max(0, Math.ceil(target - done)) })}
-              </Text_>
-              <Text_ variant="caption" muted>{t('home.goalProgress', { done: Math.round(done), target })}</Text_>
-            </View>
-          </View>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            {(data?.week ?? []).map((d, i) => {
-              const active = d.minutes > 0;
-              const isToday = i === (data?.week.length ?? 0) - 1;
-              return (
-                <View key={d.date} accessible accessibilityLabel={`${weekday(d.date)}: ${active ? t('today.studied') : t('today.notStudied')}`} style={{ alignItems: 'center', gap: 6 }}>
-                  <View style={{ width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? colors.primary : colors.surface, borderWidth: isToday && !active ? 2 : 0, borderColor: colors.primary }}>
-                    {active ? <Ionicons name="checkmark" size={18} color={colors.onPrimary} /> : null}
+        {/* Bugünkü antrenman */}
+        {data ? (
+          <DailyTraining plan={data.plan} totalXp={data.totalXp}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: spacing.sm }}>
+              {data.week.map((d, i) => {
+                const active = d.minutes > 0;
+                const isToday = i === data.week.length - 1;
+                return (
+                  <View key={d.date} accessible accessibilityLabel={`${weekday(d.date)}: ${active ? t('today.studied') : t('today.notStudied')}`} style={{ alignItems: 'center', gap: 6 }}>
+                    <View style={{ width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? colors.primary : colors.surface, borderWidth: isToday && !active ? 2 : 0, borderColor: colors.primary }}>
+                      {active ? <Ionicons name="checkmark" size={18} color={colors.onPrimary} /> : null}
+                    </View>
+                    <Text_ variant="caption" muted style={{ fontWeight: isToday ? '700' : '400' }}>{weekday(d.date)}</Text_>
                   </View>
-                  <Text_ variant="caption" muted style={{ fontWeight: isToday ? '700' : '400' }}>{weekday(d.date)}</Text_>
-                </View>
-              );
-            })}
-          </View>
-        </View>
+                );
+              })}
+            </View>
+          </DailyTraining>
+        ) : null}
 
         {isExam ? (
           <View style={{ gap: spacing.md }}>
@@ -155,48 +125,6 @@ export default function TodayScreen() {
             ) : null}
           </View>
         ) : null}
-
-        {/* Sıradaki adım */}
-        <View style={{ gap: spacing.md }}>
-          <Text_ variant="heading">{t('today.programTitle')}</Text_>
-          {!data?.course ? (
-            <Card style={{ gap: spacing.md }}>
-              <Text_ muted>{t('course.noCourse')}</Text_>
-              <Button title={level ? t('home.startCourse') : t('home.noLevelTitle')} onPress={startCourse} />
-            </Card>
-          ) : !next ? (
-            <Card style={{ gap: spacing.md }}>
-              <Text_ variant="heading">{t('home.courseDone')}</Text_>
-              <Button title={t('tabs.library')} onPress={() => router.push('/(tabs)/library')} />
-            </Card>
-          ) : (
-            <Card style={{ gap: spacing.lg }}>
-              <View style={{ flexDirection: 'row', gap: spacing.md, alignItems: 'center' }}>
-                <View style={{ width: 52, height: 52, borderRadius: radius.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-                  <Ionicons name={lessonStepIcon(next.type)} size={26} color={colors.primary} />
-                </View>
-                <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-                  <Text_ variant="heading">{lessonTitle(next)}</Text_>
-                  <Text_ variant="caption" muted>{t('today.minutes', { count: minutesFor(next) })}</Text_>
-                </View>
-              </View>
-              {lessonGoal(next) ? <Text_ muted>{lessonGoal(next)}</Text_> : null}
-              <Button title={t('home.continueCourse')} onPress={() => router.push(lessonRoute(next) as any)} />
-              {later.length > 0 ? (
-                <View style={{ borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: spacing.md, gap: spacing.md }}>
-                  <Text_ variant="caption" muted>{t('today.later')}</Text_>
-                  {later.map((l) => (
-                    <View key={l.id} accessible style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                      <Ionicons name={lessonStepIcon(l.type)} size={20} color={colors.textMuted} />
-                      <Text_ style={{ flex: 1 }} muted numberOfLines={1}>{lessonTitle(l)}</Text_>
-                      <Text_ variant="caption" muted>{t('today.minutes', { count: minutesFor(l) })}</Text_>
-                    </View>
-                  ))}
-                </View>
-              ) : null}
-            </Card>
-          )}
-        </View>
 
         {/* Okuma özeti */}
         <View style={{ gap: spacing.md }}>
@@ -215,7 +143,8 @@ export default function TodayScreen() {
         <View style={{ gap: spacing.md }}>
           <Text_ variant="heading">{t('today.shortcuts')}</Text_>
           <View style={{ borderRadius: radius.lg, backgroundColor: colors.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, overflow: 'hidden' }}>
-            <LinkRow icon="game-controller-outline" color={PURPLE} label={t('tabs.exercises')} onPress={() => router.push('/(tabs)/exercises')} />
+            <LinkRow icon="school-outline" color={GREEN} label={t('home.continueCourse')} onPress={() => router.push('/(tabs)/course')} />
+            <LinkRow divider icon="game-controller-outline" color={PURPLE} label={t('tabs.exercises')} onPress={() => router.push('/(tabs)/exercises')} />
             <LinkRow icon="book-outline" color={BLUE} label={t('home.quickRead')} onPress={() => router.push('/(tabs)/library')} divider />
             <LinkRow icon="refresh-outline" color={GREEN} label={t('home.retakeLevel')} onPress={() => router.push('/level-test')} divider />
             <LinkRow icon="settings-outline" color={colors.textMuted} label={t('home.settings')} onPress={() => router.push('/settings')} divider />

@@ -10,6 +10,7 @@ import { LEVEL_PARAMS } from '../../core/levels';
 import { blockChunks, chunkText, ReadingChunk } from '../../core/reader';
 import { computeWpm } from '../../core/metrics';
 import { recordActivity } from '../../services/activity';
+import { completeDaily } from '../../services/daily';
 import { spacing, useTheme } from '../../theme';
 import { t } from '../../i18n';
 
@@ -47,7 +48,7 @@ function SideButton({ icon, label, onPress }: { icon: 'refresh' | 'options-outli
  * Bitince ölçülen okuma hızı kaydedilir.
  */
 export default function ReadingPlayScreen() {
-  const { id, lesson } = useLocalSearchParams<{ id: string; lesson?: string }>();
+  const { id, lesson, daily } = useLocalSearchParams<{ id: string; lesson?: string; daily?: string }>();
   const { colors, scale } = useTheme();
   const insets = useSafeAreaInsets();
   const textId = Number(id);
@@ -91,6 +92,7 @@ export default function ReadingPlayScreen() {
       const wpm = computeWpm(text.wordCount, activeMs);
       repos.texts.recordReadingSession(text.id, wpm, activeMs, text.wordCount, smart ? 'smart' : 'free');
       recordActivity(activeMs);
+      completeDaily(daily);
       setSummary({ wpm, activeMs });
     };
   });
@@ -186,7 +188,11 @@ export default function ReadingPlayScreen() {
       <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: Math.max(insets.bottom, spacing.lg), gap: spacing.md }}>
         {summary ? (
           <View style={{ gap: spacing.sm }}>
-            <Button title={t('reader.toTest')} onPress={continueToTest} />
+            {daily !== undefined ? (
+              <Button title={t('daily.backToPlan')} onPress={() => router.dismissTo('/(tabs)')} />
+            ) : (
+              <Button title={t('reader.toTest')} onPress={continueToTest} />
+            )}
             <Button title={t('reader.restart')} variant="secondary" onPress={restart} />
           </View>
         ) : (

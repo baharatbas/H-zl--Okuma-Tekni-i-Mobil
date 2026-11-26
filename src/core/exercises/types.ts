@@ -15,7 +15,18 @@ export type ExerciseKey =
   | 'synonym_match'
   | 'line_scan'
   | 'rsvp_repeat'
-  | 'schulte';
+  | 'schulte'
+  | 'word_find'
+  | 'phrase_group'
+  | 'missing_word'
+  | 'sentence_finish'
+  | 'word_memory'
+  | 'typo_find'
+  | 'word_hunt'
+  | 'real_or_fake'
+  | 'true_false'
+  | 'maze_read'
+  | 'word_chain';
 
 export interface ExerciseSettings {
   /** 1 (kolay) – 5 (zor). */

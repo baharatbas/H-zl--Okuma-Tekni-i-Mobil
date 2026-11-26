@@ -4,6 +4,7 @@ import { RsvpGame, TrackingGame, ZigzagGame } from './attention';
 import { FlashNumbersGame, PeripheralGame, StarHunterGame, WordBlocksGame } from './perception';
 import { LineScanGame, ScanSearchGame, SkimGame, SynonymGame } from './reading';
 import { SchulteGame } from './SchulteGame';
+import { ChoiceGame, TypoGame, WordChainGame, WordHuntGame, WordMemoryGame } from './words';
 import type { GameProps } from './shell';
 
 /** Egzersiz anahtarına göre doğru oyun bileşenini seçer. Tüm oyunlar tam ekrandır. */
@@ -35,5 +36,21 @@ export function ExerciseGame({ exerciseKey, ...props }: GameProps & { exerciseKe
       return <SkimGame {...props} />;
     case 'synonym_match':
       return <SynonymGame {...props} />;
+    case 'word_find':
+    case 'phrase_group':
+    case 'missing_word':
+    case 'sentence_finish':
+    case 'real_or_fake':
+    case 'true_false':
+    case 'maze_read':
+      return <ChoiceGame {...props} gameKey={exerciseKey} />;
+    case 'typo_find':
+      return <TypoGame {...props} />;
+    case 'word_memory':
+      return <WordMemoryGame {...props} />;
+    case 'word_chain':
+      return <WordChainGame {...props} />;
+    case 'word_hunt':
+      return <WordHuntGame {...props} />;
   }
 }
