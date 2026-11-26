@@ -58,8 +58,8 @@ describe('Kelime Akışı (tekrar bulma)', () => {
   it('doğru dokunuşlar isabet, fazlası yanlış alarm olarak sayılır', () => {
     const stream = { words: ['a', 'a', 'b', 'b'], repeats: [1, 3], wordMs: 300 };
     expect(rsvpWindows(stream)).toEqual([
-      { startMs: 300, endMs: 600 },
-      { startMs: 900, endMs: 1200 },
+      { startMs: 300, endMs: 1100 },
+      { startMs: 900, endMs: 1700 },
     ]);
     const res = scoreRsvp(stream, [400, 100]);
     expect(res.hits).toBe(1);

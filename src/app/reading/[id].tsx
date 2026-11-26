@@ -118,7 +118,7 @@ export default function ReadingPlayScreen() {
       const course = repos.course.getActive();
       if (course) repos.course.completeLesson(course.id, Number(lesson));
     }
-    router.replace(`/test/${text.id}${lesson !== undefined ? `?lesson=${lesson}` : ''}` as any);
+    router.replace(`/test/${text.id}${lesson !== undefined ? `?lesson=${Number(lesson) + 1}` : ''}` as any);
   };
 
   return (
@@ -180,7 +180,7 @@ export default function ReadingPlayScreen() {
           {summary ? (
             <View style={{ alignItems: 'center', gap: spacing.sm, marginTop: spacing.xl }}>
               <Text_ muted>{t('reader.readingWpm')}</Text_>
-              <Text_ style={{ fontSize: scale(48), fontWeight: '900', color: colors.primary }}>{String(Math.round(summary.wpm))}</Text_>
+              <Text_ style={{ fontSize: scale(48), lineHeight: scale(58), fontWeight: '900', color: colors.primary }}>{String(Math.round(summary.wpm))}</Text_>
               <Text_ muted>{t('common.wpm', { value: '' }).trim()}</Text_>
             </View>
           ) : (

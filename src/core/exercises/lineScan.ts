@@ -30,19 +30,21 @@ export function allSentences(): string[] {
   );
 }
 
-const clean = (w: string) => w.toLowerCase().replace(/[^a-zçğıöşü]/g, '');
+/** Türkçe küçük harfe çevirir (I→ı, İ→i) ve noktalamayı atar; şapkalı harfler korunur. */
+export const cleanWord = (w: string) => w.toLocaleLowerCase('tr-TR').replace(/[^a-zçğıöşüâîû]/g, '');
 
 /** Hedef kelime yalnızca bir satırda geçer ve en az 6 harflidir. */
 export function generateLineScanRound(params: LineScanParams, index: number, rng: Rng, pool: string[] = allSentences()): LineScanRound {
   for (let attempt = 0; attempt < 200; attempt++) {
     const lines = shuffle(rng, pool).slice(0, params.lines);
-    const wordLists = lines.map((l) => l.split(' ').map(clean));
+    const wordLists = lines.map((l) => l.split(' ').map(cleanWord));
     const candidates: { word: string; line: number }[] = [];
     wordLists.forEach((ws, li) => {
       ws.forEach((w) => {
         if (w.length < 6) return;
-        const count = wordLists.filter((other) => other.includes(w)).length;
-        if (count === 1) candidates.push({ word: w, line: li });
+        // Başka satırda kelimenin bir parçası olarak bile geçmemeli (ör. "kitap" / "kitaplar").
+        const elsewhere = wordLists.some((other, oi) => oi !== li && other.some((o) => o.includes(w)));
+        if (!elsewhere) candidates.push({ word: w, line: li });
       });
     });
     if (candidates.length > 0) {

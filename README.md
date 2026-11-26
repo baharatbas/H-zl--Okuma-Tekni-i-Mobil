@@ -106,7 +106,7 @@ bir işlem içinde çalıştırır.
 1. `src/core/exercises/<ad>.ts`: `generate…` (tur üretimi) ve `summarize…` (değerlendirme) fonksiyonlarını yazın; birim testi ekleyin.
 2. `src/core/exercises/types.ts` içindeki `ExerciseKey`'e anahtarı ekleyin.
 3. `src/core/exercises/registry.ts` içine ad, açıklama, hedef ve varsayılan ayarları ekleyin.
-4. `src/components/exercises/games.tsx` içinde oyun bileşenini yazın ve `ExerciseGame` dispatcher'ına bağlayın.
+4. `src/components/exercises/` altında (attention, perception, reading) oyunu `GameShell` düzeniyle yazın ve `games.tsx` içindeki `ExerciseGame` seçicisine bağlayın.
 5. İsteğe bağlı: `src/core/course.ts` içinde kurs ünitelerine ekleyin.
 
 ## Notlar ve sınırlar

@@ -68,3 +68,14 @@ export function summarizeSynonyms(rounds: SynonymRound[], answers: (number | nul
     score: rounds.length ? Math.round((correct / rounds.length) * 100) : 0,
   };
 }
+
+/** Bir oyunluk tur seti: aynı kelime iki kez sorulmaz (kelime sayısı yettiği sürece). */
+export function generateSynonymSet(count: number, rng: Rng): SynonymRound[] {
+  return shuffle(rng, SYNONYM_PAIRS).slice(0, count).map((pair, index) => {
+    const others = shuffle(rng, SYNONYM_PAIRS.filter((p) => p.word !== pair.word).map((p) => p.synonym)).slice(0, 3);
+    const correctIndex = randomInt(rng, 0, 3);
+    const options = [...others];
+    options.splice(correctIndex, 0, pair.synonym);
+    return { index, word: pair.word, options, correctIndex };
+  });
+}

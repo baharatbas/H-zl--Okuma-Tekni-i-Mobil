@@ -37,16 +37,13 @@ export function generateWordBlockRound(params: WordBlockParams, index: number, r
   const words = shuffle(rng, WORD_POOL).slice(0, params.blockSize);
   const phrase = words.join(' ');
   const distractors = new Set<string>();
-  let guard = 0;
-  while (distractors.size < 3 && guard < 50) {
-    guard++;
-    const candidate = shuffle(rng, words).join(' ');
-    if (candidate !== phrase) distractors.add(candidate);
-  }
-  // Yeterince farklı çeldirici yoksa, bir kelimeyi değiştirerek tamamla.
+  // Bir çeldirici kelimelerin yer değiştirmiş hali, diğer ikisi tek kelimesi farklı hali.
+  const reversed = [...words].reverse().join(' ');
+  if (reversed !== phrase) distractors.add(reversed);
+  const unused = WORD_POOL.filter((w) => !words.includes(w));
   while (distractors.size < 3) {
     const swapped = [...words];
-    swapped[0] = pickOne(rng, WORD_POOL.filter((w) => !words.includes(w)));
+    swapped[randomInt(rng, 0, swapped.length - 1)] = pickOne(rng, unused);
     const candidate = swapped.join(' ');
     if (candidate !== phrase) distractors.add(candidate);
   }

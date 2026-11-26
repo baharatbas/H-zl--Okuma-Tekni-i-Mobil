@@ -5,7 +5,7 @@ import Animated, { ZoomIn } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { Button, Card, Empty, Stepper, Text_ } from '../../components/ui';
 import { ExerciseGame } from '../../components/exercises/games';
-import { SchulteGame } from '../../components/exercises/SchulteGame';
+import { lessonRoute, lessonTitle } from '../../services/lessons';
 import { EXERCISES, isExerciseKey } from '../../core/exercises/registry';
 import type { ExerciseResult, ExerciseSettings } from '../../core/exercises/types';
 import { repositories } from '../../repositories';
@@ -31,7 +31,13 @@ export default function ExerciseScreen() {
   const meta = exerciseKey ? EXERCISES[exerciseKey] : null;
 
   const [phase, setPhase] = useState<Phase>('setup');
-  const [draft, setDraft] = useState<ExerciseSettings | null>(() => (meta ? { ...meta.defaults } : null));
+  // Kurstan gelindiyse zorluk, kurs adımından alınır.
+  const [draft, setDraft] = useState<ExerciseSettings | null>(() => {
+    if (!meta) return null;
+    const step = lesson === undefined ? undefined : repositories().course.getActive()?.lessons.find((l) => l.orderIndex === Number(lesson));
+    return step ? { ...meta.defaults, difficulty: step.difficulty } : { ...meta.defaults };
+  });
+  const [nextStep, setNextStep] = useState<{ title: string; route: string } | null>(null);
   const [settings, setSettings] = useState<ExerciseSettings | null>(null);
   const [result, setResult] = useState<ExerciseResult | null>(null);
   const [gameKey, setGameKey] = useState(0);
@@ -50,7 +56,11 @@ export default function ExerciseScreen() {
     if (lesson !== undefined) {
       const repos = repositories();
       const course = repos.course.getActive();
-      if (course) repos.course.completeLesson(course.id, Number(lesson));
+      if (course) {
+        const updated = repos.course.completeLesson(course.id, Number(lesson));
+        const next = updated.lessons.find((l) => !l.isCompleted && l.unlocked);
+        setNextStep(next ? { title: lessonTitle(next), route: lessonRoute(next) } : null);
+      }
     }
   };
 
@@ -72,12 +82,12 @@ export default function ExerciseScreen() {
     borderColor: selected ? colors.primary : colors.border,
   });
 
-  // Schulte Tablosu tam ekran oynanır; üst başlık gizlenir.
-  if (phase === 'play' && settings && exerciseKey === 'schulte') {
+  // Oyunlar tam ekran oynanır; üst başlık gizlenir.
+  if (phase === 'play' && settings) {
     return (
       <>
         <Stack.Screen options={{ headerShown: false, gestureEnabled: false }} />
-        <SchulteGame key={gameKey} settings={settings} onFinish={handleFinish} onQuit={() => setPhase('setup')} />
+        <ExerciseGame key={gameKey} exerciseKey={exerciseKey} settings={settings} onFinish={handleFinish} onQuit={() => setPhase('setup')} />
       </>
     );
   }
@@ -137,7 +147,7 @@ export default function ExerciseScreen() {
                 min={minSpeed}
                 max={maxSpeed}
                 step={speedStep}
-                format={(v) => `${v} ms`}
+                format={(v) => (v >= 5000 ? `${Math.round(v / 100) / 10} sn` : `${v} ms`)}
                 onChange={(v) => setDraft({ ...draft, speedMs: v })}
               />
             )}
@@ -166,15 +176,8 @@ export default function ExerciseScreen() {
         </>
       )}
 
-      {phase === 'play' && settings && (
-        <>
-          <ExerciseGame key={gameKey} exerciseKey={exerciseKey} settings={settings} onFinish={handleFinish} />
-          <Button title={t('exercises.quit')} variant="ghost" onPress={() => setPhase('setup')} />
-        </>
-      )}
-
       {phase === 'result' && result && (
-        <ResultView result={result} onRetry={play} onBack={() => router.back()} scale={scale} />
+        <ResultView result={result} onRetry={play} onBack={() => router.back()} scale={scale} next={nextStep} fromCourse={lesson !== undefined} />
       )}
     </ScrollView>
   );
@@ -185,11 +188,15 @@ function ResultView({
   onRetry,
   onBack,
   scale,
+  next,
+  fromCourse,
 }: {
   result: ExerciseResult;
   onRetry: () => void;
   onBack: () => void;
   scale: (n: number) => number;
+  next: { title: string; route: string } | null;
+  fromCourse: boolean;
 }) {
   const { colors } = useTheme();
   const stars = starRating(result.score);
@@ -206,7 +213,7 @@ function ResultView({
           ))}
         </View>
         <Text_ variant="title" style={{ textAlign: 'center' }}>{title}</Text_>
-        <Text_ style={{ fontSize: scale(44), fontWeight: '700', color: colors.primary }}>{String(result.score)}</Text_>
+        <Text_ style={{ fontSize: scale(44), lineHeight: scale(54), fontWeight: '700', color: colors.primary }}>{String(result.score)}</Text_>
         <Text_ variant="caption" muted>{t('exercises.score')}</Text_>
       </Card>
 
@@ -222,8 +229,11 @@ function ResultView({
       </View>
 
       <Text_ variant="caption" muted style={{ textAlign: 'center' }}>{t('exercises.saved')}</Text_>
-      <Button title={t('exercises.retry')} onPress={onRetry} />
-      <Button title={t('exercises.back')} variant="secondary" onPress={onBack} />
+      {next ? (
+        <Button title={`${t('exercises.nextStep')}: ${next.title}`} onPress={() => router.replace(next.route as any)} />
+      ) : null}
+      <Button title={t('exercises.retry')} variant={next ? 'secondary' : 'primary'} onPress={onRetry} />
+      <Button title={fromCourse ? t('common.close') : t('exercises.back')} variant="ghost" onPress={onBack} />
     </View>
   );
 }
