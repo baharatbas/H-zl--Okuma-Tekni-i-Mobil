@@ -1,4 +1,5 @@
 import { EXTRA_BUILTIN_TEXTS } from './builtinTextsExtra';
+import { LIBRARY_TEXTS } from './library';
 /**
  * Uygulamayla gelen özgün Türkçe okuma metinleri ve anlama soruları.
  * Metinler bu proje için yazılmıştır; başka kaynaklardan kopyalanmamıştır.
@@ -272,7 +273,7 @@ const BASE_BUILTIN_TEXTS: BuiltinText[] = [
   },
 ];
 
-export const BUILTIN_TEXTS: BuiltinText[] = [...BASE_BUILTIN_TEXTS, ...EXTRA_BUILTIN_TEXTS];
+export const BUILTIN_TEXTS: BuiltinText[] = [...BASE_BUILTIN_TEXTS, ...EXTRA_BUILTIN_TEXTS, ...LIBRARY_TEXTS];
 
 export function findBuiltinText(key: string): BuiltinText | undefined {
   return BUILTIN_TEXTS.find((t) => t.key === key);

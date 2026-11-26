@@ -17,7 +17,16 @@ export function seedBuiltins(db: SqlDb, now: () => string = () => new Date().toI
     }
 
     const ts = now();
+    // Daha önce yüklenmiş metinler tek sorguyla atlanır; açılış süresi metin sayısıyla uzamaz.
+    const seeded = new Set(
+      db
+        .getAllSync<{ key: string }>(
+          'SELECT key FROM library_texts l WHERE key IS NOT NULL AND EXISTS (SELECT 1 FROM tests t WHERE t.text_id = l.id)',
+        )
+        .map((r) => r.key),
+    );
     for (const text of BUILTIN_TEXTS) {
+      if (seeded.has(text.key)) continue;
       db.runSync(
         `INSERT OR IGNORE INTO library_texts (key, title, body, word_count, source, created_at, updated_at)
          VALUES (?, ?, ?, ?, 'builtin', ?, ?)`,

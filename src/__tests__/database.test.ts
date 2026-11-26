@@ -31,8 +31,8 @@ function setup() {
 describe('migrasyonlar', () => {
   it('şemayı en son sürüme getirir ve tekrar çalıştırıldığında hiçbir şey uygulamaz', () => {
     const db = openMemoryDb();
-    expect(migrate(db)).toBe(4);
-    expect(currentSchemaVersion(db)).toBe(4);
+    expect(migrate(db)).toBe(5);
+    expect(currentSchemaVersion(db)).toBe(5);
     expect(migrate(db)).toBe(0);
   });
 
@@ -263,5 +263,17 @@ describe('egzersiz adımında seviye kuralı', () => {
     expect(course.getActive()!.lessons[0].passedLevels).toEqual([]);
     exercises.recordSession('tracking', result(100), { speedMs: 1000, difficulty: 1, courseLessonId: c.lessons[0].id });
     expect(course.start('beginner').lessons[0].passedLevels).toEqual([]);
+  });
+});
+
+describe('kütüphane özet listesi', () => {
+  it('her hazır metni soru sayısıyla döner ve metnin tamamını taşımaz', () => {
+    const db = openMemoryDb();
+    migrate(db);
+    seedBuiltins(db);
+    seedBuiltins(db);
+    const rows = createTextRepository(db).listSummaries();
+    expect(rows).toHaveLength(BUILTIN_TEXTS.length);
+    expect(rows.every((r) => r.questions === 3 && r.preview.length <= 200)).toBe(true);
   });
 });

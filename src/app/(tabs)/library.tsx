@@ -5,19 +5,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text_ } from '../../components/ui';
 import { repositories } from '../../repositories';
-import type { LibraryText } from '../../repositories';
+import type { TextSummary as Row } from '../../repositories';
 import { MIN_TOUCH, radius, spacing, useTheme } from '../../theme';
 import { t } from '../../i18n';
 import { CATEGORIES, CategoryKey, categoryOf, filterTexts, textOfTheDay } from '../../content/textCategories';
 import { localDateString } from '../../core/streak';
 
-interface Row extends LibraryText {
-  questions: number;
-}
-
 const minutesFor = (words: number) => Math.max(1, Math.round(words / 200));
 const metaFor = (row: Row) =>
   `${t('library.minutesRead', { minutes: minutesFor(row.wordCount) })} · ${t('library.wordCount', { count: row.wordCount })} · ${t('library.questionCount', { count: row.questions })}`;
+
+const renderCard = ({ item }: { item: Row }) => <TextCard row={item} />;
+const Separator = () => <View style={{ height: spacing.md }} />;
 
 const FILTERS: (CategoryKey | 'all')[] = ['all', 'nature', 'science', 'culture', 'life', 'thought', 'mine'];
 
@@ -31,8 +30,7 @@ export default function LibraryScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      const repo = repositories();
-      setRows(repo.texts.list().map((text) => ({ ...text, questions: repo.texts.getTest(text.id)?.questions.length ?? 0 })));
+      setRows(repositories().texts.listSummaries());
     }, []),
   );
 
@@ -113,7 +111,10 @@ export default function LibraryScreen() {
       <FlatList
         data={visible}
         keyExtractor={(item) => String(item.id)}
-        renderItem={({ item }) => <TextCard row={item} />}
+        renderItem={renderCard}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={7}
         ListHeaderComponent={header}
         ListEmptyComponent={
           <View style={{ alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xl }}>
@@ -123,7 +124,7 @@ export default function LibraryScreen() {
             </Text_>
           </View>
         }
-        ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
+        ItemSeparatorComponent={Separator}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xl }}
@@ -149,7 +150,7 @@ function DailyCard({ row }: { row: Row }) {
       </View>
       <View style={{ gap: spacing.xs }}>
         <Text_ variant="title">{row.title}</Text_>
-        <Text_ numberOfLines={2} muted>{row.body}</Text_>
+        <Text_ numberOfLines={2} muted>{row.preview}</Text_>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <Text_ variant="caption" muted>{`${cat.label} · ${t('library.minutesRead', { minutes: minutesFor(row.wordCount) })}`}</Text_>
@@ -163,7 +164,7 @@ function DailyCard({ row }: { row: Row }) {
 }
 
 /** Metin kartı: solda kategori renginde küçük kitap kapağı. */
-function TextCard({ row }: { row: Row }) {
+const TextCard = React.memo(function TextCard({ row }: { row: Row }) {
   const { colors } = useTheme();
   const cat = CATEGORIES[categoryOf(row)];
   return (
@@ -184,4 +185,4 @@ function TextCard({ row }: { row: Row }) {
       <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
     </Pressable>
   );
-}
+});

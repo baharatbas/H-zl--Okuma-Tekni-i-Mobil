@@ -2,6 +2,8 @@
  * Hazır metinlerin ders notları: her metnin öğrenme hedefi ve okuma stratejisi.
  * Anahtarlar builtinTexts/builtinTextsExtra içindeki metin anahtarlarıdır.
  */
+import { LIBRARY_TEXTS } from './library';
+
 export interface LessonNote {
   objective: string;
   strategy: string;
@@ -88,6 +90,7 @@ export const LESSON_NOTES: Record<string, LessonNote> = {
     objective: 'Öğütler ve planlama önerilerini bir sistem olarak kavrarsın.',
     strategy: 'Öğütleri "ne zaman?" ve "nasıl?" sorularına göre sınıflandır.',
   },
+  ...Object.fromEntries(LIBRARY_TEXTS.map(({ key, objective, strategy }) => [key, { objective, strategy }])),
 };
 
 export function lessonNote(key: string | null | undefined): LessonNote | null {

@@ -1,4 +1,6 @@
 /** Hazır metinlerin konu kategorileri ve arama/filtre yardımcıları. */
+import { LIBRARY_TEXTS } from './library';
+
 export type CategoryKey = 'nature' | 'science' | 'culture' | 'life' | 'thought' | 'mine';
 
 export const CATEGORIES: Record<CategoryKey, { label: string; icon: string; color: string }> = {
@@ -31,6 +33,7 @@ const BY_KEY: Record<string, CategoryKey> = {
   'builtin-chess': 'thought',
   'builtin-bread': 'life',
   'builtin-time': 'thought',
+  ...Object.fromEntries(LIBRARY_TEXTS.map((text) => [text.key, text.category])),
 };
 
 export function categoryOf(text: { key: string | null; source: 'builtin' | 'user' }): CategoryKey {

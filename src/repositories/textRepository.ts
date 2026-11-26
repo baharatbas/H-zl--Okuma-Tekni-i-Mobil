@@ -14,6 +14,17 @@ export interface LibraryText {
   updatedAt: string;
 }
 
+/** Liste ekranı için hafif kayıt: metnin tamamı yerine kısa bir giriş taşır. */
+export interface TextSummary {
+  id: number;
+  key: string | null;
+  title: string;
+  source: 'builtin' | 'user';
+  wordCount: number;
+  preview: string;
+  questions: number;
+}
+
 export interface TestQuestion {
   id: number;
   position: number;
@@ -41,6 +52,8 @@ export interface ReadingSessionRecord {
 
 export interface TextRepository {
   list(source?: 'builtin' | 'user'): LibraryText[];
+  /** Tüm metinlerin özetleri, soru sayılarıyla birlikte tek sorguda. */
+  listSummaries(): TextSummary[];
   get(id: number): LibraryText | null;
   getByKey(key: string): LibraryText | null;
   createUser(title: string, body: string): number;
@@ -86,6 +99,17 @@ export function createTextRepository(db: SqlDb): TextRepository {
         source ? [source] : [],
       );
       return rows.map(mapText);
+    },
+
+    listSummaries() {
+      return db.getAllSync<TextSummary>(
+        `SELECT l.id, l.key, l.title, l.source, l.word_count AS wordCount, substr(l.body, 1, 200) AS preview,
+           (SELECT COUNT(*) FROM test_questions q
+             WHERE q.test_id = (SELECT t.id FROM tests t WHERE t.text_id = l.id ORDER BY t.id LIMIT 1)) AS questions
+         FROM library_texts l
+         WHERE l.deleted_at IS NULL
+         ORDER BY l.source DESC, l.created_at ASC, l.id ASC`,
+      );
     },
 
     get(id) {

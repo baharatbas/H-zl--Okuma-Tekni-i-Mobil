@@ -161,6 +161,14 @@ export const MIGRATIONS: Migration[] = [
       'CREATE INDEX IF NOT EXISTS idx_exercise_sessions_lesson ON exercise_sessions(course_lesson_id)',
     ],
   },
+  {
+    version: 5,
+    name: 'tests_text_index',
+    statements: [
+      // Kütüphane listesi her metnin testini arar; metin sayısı arttıkça indeks gerekir.
+      'CREATE INDEX IF NOT EXISTS idx_tests_text ON tests(text_id)',
+    ],
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;
