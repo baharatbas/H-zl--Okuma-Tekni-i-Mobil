@@ -4,6 +4,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Card, Text_ } from '../../components/ui';
+import { PremiumBanner } from '../../components/Premium';
 import { ProgressRing } from '../../components/ProgressRing';
 import { repositories } from '../../repositories';
 import type { CourseView, LessonRow } from '../../repositories';
@@ -97,6 +98,8 @@ export default function TodayScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background, paddingTop: insets.top }}>
       <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl, paddingBottom: spacing.xl }} showsVerticalScrollIndicator={false}>
+        <PremiumBanner />
+
         {/* Selamlama */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
           <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
