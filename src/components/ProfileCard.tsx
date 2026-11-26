@@ -19,25 +19,25 @@ export function ProfileCard({ streak, bestStreak }: { streak: number; bestStreak
   const track = isExam ? exam.label : t('exam.trackSelf');
 
   const iconButton = (icon: 'create-outline' | 'settings-outline', label: string, href: '/profile' | '/settings') => (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={() => router.push(href)} style={{ width: MIN_TOUCH, height: MIN_TOUCH, borderRadius: MIN_TOUCH / 2, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' }}>
-      <Ionicons name={icon} size={22} color={colors.primary} />
+    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={() => router.push(href)} style={{ width: MIN_TOUCH, height: MIN_TOUCH, borderRadius: MIN_TOUCH / 2, backgroundColor: colors.onPrimary + '26', alignItems: 'center', justifyContent: 'center' }}>
+      <Ionicons name={icon} size={22} color={colors.onPrimary} />
     </Pressable>
   );
 
   return (
-    <View style={{ borderRadius: radius.lg, backgroundColor: colors.primarySoft, padding: spacing.lg, gap: spacing.lg }}>
+    <View style={{ borderRadius: 24, backgroundColor: colors.primary, padding: spacing.lg, gap: spacing.lg }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
         <Pressable accessibilityRole="button" accessibilityLabel={t('profile.edit')} onPress={() => router.push('/profile')}>
           <Avatar uri={photo} name={name} />
         </Pressable>
         <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-          <Text_ variant="title" numberOfLines={2}>{name || t('profile.noName')}</Text_>
-          <Text_ variant="caption" muted>{track}</Text_>
+          <Text_ variant="title" numberOfLines={2} style={{ color: colors.onPrimary }}>{name || t('profile.noName')}</Text_>
+          <Text_ variant="caption" style={{ color: colors.onPrimary, opacity: 0.85 }}>{track}</Text_>
         </View>
         {iconButton('create-outline', t('profile.edit'), '/profile')}
         {iconButton('settings-outline', t('home.settings'), '/settings')}
       </View>
-      <View style={{ flexDirection: 'row', borderRadius: radius.md, backgroundColor: colors.surface, paddingVertical: spacing.md }}>
+      <View style={{ flexDirection: 'row', borderRadius: radius.lg, backgroundColor: colors.onPrimary + '1F', paddingVertical: spacing.md }}>
         <Item label={t('today.level')} value={level ? t(`levels.${level}`) : '—'} />
         <Item label={t('today.streak')} value={String(streak)} />
         <Item label={t('profile.bestStreak')} value={String(bestStreak)} />
@@ -47,10 +47,11 @@ export function ProfileCard({ streak, bestStreak }: { streak: number; bestStreak
 }
 
 function Item({ label, value }: { label: string; value: string }) {
+  const { colors } = useTheme();
   return (
     <View accessible style={{ flex: 1, alignItems: 'center', gap: 2 }}>
-      <Text_ variant="heading" numberOfLines={1}>{value}</Text_>
-      <Text_ variant="caption" muted>{label}</Text_>
+      <Text_ variant="heading" numberOfLines={1} style={{ color: colors.onPrimary }}>{value}</Text_>
+      <Text_ variant="caption" style={{ color: colors.onPrimary, opacity: 0.85 }}>{label}</Text_>
     </View>
   );
 }

@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Text_ } from './ui';
 import { MIN_TOUCH, radius, spacing, useTheme } from '../theme';
+import { useIsPremium } from '../store/premiumStore';
 import { t } from '../i18n';
 
 /** Sarı zemin her iki temada aynı kalır; üzerindeki yazı koyudur (yüksek karşıtlık). */
@@ -21,9 +22,11 @@ const PLANS: { key: PlanKey; price: string }[] = [
 
 const BENEFITS = ['benefitCourses', 'benefitTexts', 'benefitStats', 'benefitAds'] as const;
 
-/** Ana sayfanın üstündeki premium bandı; dokununca fiyat paneli alttan açılır. */
+/** Sekme sayfalarının üstündeki premium kartı; dokununca fiyat paneli alttan açılır. Premium üyede görünmez. */
 export function PremiumBanner() {
+  const isPremium = useIsPremium();
   const [open, setOpen] = useState(false);
+  if (isPremium) return null;
   return (
     <>
       <Pressable

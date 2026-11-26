@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { PremiumBanner } from '../../components/Premium';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Card, Text_ } from '../../components/ui';
 import { ProgressRing } from '../../components/ProgressRing';
@@ -74,6 +75,7 @@ export default function CourseScreen() {
     return (
       <View style={page}>
         <View style={{ padding: spacing.lg, gap: spacing.lg }}>
+          <PremiumBanner />
           <Text_ variant="title" accessibilityRole="header">{t('course.title')}</Text_>
           <Card style={{ gap: spacing.md }}>
             <Text_ muted>{t('course.noCourse')}</Text_>
@@ -92,6 +94,8 @@ export default function CourseScreen() {
   return (
     <View style={page}>
       <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xl }} showsVerticalScrollIndicator={false}>
+        <PremiumBanner />
+
         {/* Üst kart: ilerleme ve sıradaki adım */}
         <View style={{ borderRadius: radius.lg, backgroundColor: colors.primarySoft, padding: spacing.lg, gap: spacing.lg }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.lg }}>
