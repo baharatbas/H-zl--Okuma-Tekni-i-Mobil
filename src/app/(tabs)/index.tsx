@@ -4,7 +4,6 @@ import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Card, Text_ } from '../../components/ui';
-import { PremiumBanner } from '../../components/Premium';
 import { DailyTraining } from '../../components/DailyTraining';
 import { repositories } from '../../repositories';
 import type { DailyTaskRow } from '../../repositories';
@@ -77,8 +76,6 @@ export default function TodayScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background, paddingTop: insets.top }}>
       <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl, paddingBottom: spacing.xl }} showsVerticalScrollIndicator={false}>
-        <PremiumBanner />
-
         {/* Selamlama */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
           <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
@@ -144,7 +141,7 @@ export default function TodayScreen() {
         <View style={{ gap: spacing.md }}>
           <Text_ variant="heading">{t('today.shortcuts')}</Text_>
           <View style={{ borderRadius: radius.lg, backgroundColor: colors.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, overflow: 'hidden' }}>
-            <LinkRow icon="school-outline" color={GREEN} label={t('home.continueCourse')} onPress={() => router.push('/(tabs)/course')} />
+            <LinkRow icon="school-outline" color={GREEN} label={t('home.courseShortcut')} onPress={() => router.push('/(tabs)/course')} />
             <LinkRow divider icon="game-controller-outline" color={PURPLE} label={t('tabs.exercises')} onPress={() => router.push('/(tabs)/exercises')} />
             <LinkRow icon="book-outline" color={BLUE} label={t('home.quickRead')} onPress={() => router.push('/(tabs)/library')} divider />
             <LinkRow icon="refresh-outline" color={GREEN} label={t('home.retakeLevel')} onPress={() => router.push('/level-test')} divider />

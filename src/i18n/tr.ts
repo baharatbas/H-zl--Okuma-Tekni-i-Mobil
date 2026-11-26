@@ -200,6 +200,7 @@ export const tr = {
     streakDays: '{count} gün',
     targetLabel: 'Kurs hedefi',
     streakNone: 'Bugün başlayarak serini başlat',
+    courseShortcut: 'Kursa devam et',
     continueCourse: 'Devam et',
     startCourse: 'Kursa başla',
     courseDone: 'Kursunu tamamladın. Tebrikler!',
@@ -496,8 +497,9 @@ export const tr = {
     reminderBody: 'Bugünkü okuma hedefine birkaç dakika kaldı. Hadi başlayalım!',
   },
   premium: {
-    bannerTitle: 'Premium’a geç',
-    bannerSubtitle: 'Planları ve fiyatları gör',
+    bannerTitle: 'Planı Yükselt',
+    bannerSubtitle: 'Tüm ders ve özelliklere sınırsız eriş',
+    seePlans: 'Planları Gör',
     title: 'Premium üyelik',
     close: 'Kapat',
     benefitCourses: 'Tüm kurs ve taktik dersleri',
@@ -518,6 +520,7 @@ export const tr = {
   daily: {
     title: 'Bugünkü antrenman',
     allDone: 'Bugünkü antrenman tamam!',
+    tomorrow: 'Yarın yeni bir antrenman seni bekliyor.',
     tasks: 'görev',
     estimated: 'tahmini süre',
     completed: 'tamamlanan',

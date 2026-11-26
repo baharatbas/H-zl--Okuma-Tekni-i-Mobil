@@ -4,12 +4,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Text_ } from './ui';
 import { MIN_TOUCH, radius, spacing, useTheme } from '../theme';
-import { useIsPremium } from '../store/premiumStore';
 import { t } from '../i18n';
 
 /** Sarı zemin her iki temada aynı kalır; üzerindeki yazı koyudur (yüksek karşıtlık). */
-const GOLD = '#FFD54A';
+const GOLD = '#F2C14E';
 const GOLD_INK = '#3A2C00';
+/** Üst bant: uygulamanın ana turkuazının koyu tonu; iki temada da aynı. */
+const BAR = '#17555C';
+const BAR_SOFT = '#D5ECEE';
 
 type PlanKey = 'monthly' | 'quarterly' | 'yearly';
 
@@ -22,25 +24,44 @@ const PLANS: { key: PlanKey; price: string }[] = [
 
 const BENEFITS = ['benefitCourses', 'benefitTexts', 'benefitStats', 'benefitAds'] as const;
 
-/** Sekme sayfalarının üstündeki premium kartı; dokununca fiyat paneli alttan açılır. Premium üyede görünmez. */
-export function PremiumBanner() {
-  const isPremium = useIsPremium();
+/** Büyük sistem yazısında bant yazıları en fazla bu kadar büyür. */
+const MAX_SCALE = 1.3;
+
+/**
+ * Sekmelerin en üstünde sabit duran premium bandı; durum çubuğunun arkasını da doldurur.
+ * Dokununca fiyat paneli alttan açılır. Premium üyede çağıran taraf bunu göstermez.
+ */
+export function PremiumBar() {
+  const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
-  if (isPremium) return null;
   return (
     <>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`${t('premium.bannerTitle')}. ${t('premium.bannerSubtitle')}`}
         onPress={() => setOpen(true)}
-        style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: radius.lg, backgroundColor: GOLD, opacity: pressed ? 0.85 : 1 })}
+        style={({ pressed }) => ({
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.md,
+          paddingTop: insets.top + spacing.xs,
+          paddingBottom: spacing.md,
+          paddingLeft: insets.left + spacing.lg,
+          paddingRight: insets.right + spacing.lg,
+          backgroundColor: BAR,
+          opacity: pressed ? 0.9 : 1,
+        })}
       >
-        <Ionicons name="star" size={24} color={GOLD_INK} />
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Text_ variant="heading" style={{ color: GOLD_INK }}>{t('premium.bannerTitle')}</Text_>
-          <Text_ variant="caption" style={{ color: GOLD_INK }}>{t('premium.bannerSubtitle')}</Text_>
+        <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#FFFFFF1F', alignItems: 'center', justifyContent: 'center' }}>
+          <Ionicons name="star" size={18} color={GOLD} />
         </View>
-        <Ionicons name="chevron-forward" size={20} color={GOLD_INK} />
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text_ variant="label" maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} style={{ color: '#FFFFFF', fontWeight: '800' }}>{t('premium.bannerTitle')}</Text_>
+          <Text_ variant="caption" maxFontSizeMultiplier={MAX_SCALE} numberOfLines={2} style={{ color: BAR_SOFT, fontSize: 12, lineHeight: 16 }}>{t('premium.bannerSubtitle')}</Text_>
+        </View>
+        <View style={{ minHeight: 36, justifyContent: 'center', paddingHorizontal: spacing.lg, borderRadius: radius.pill, backgroundColor: '#FFFFFF' }}>
+          <Text_ variant="label" maxFontSizeMultiplier={MAX_SCALE} style={{ color: BAR }}>{t('premium.seePlans')}</Text_>
+        </View>
       </Pressable>
       <PremiumSheet visible={open} onClose={() => setOpen(false)} />
     </>

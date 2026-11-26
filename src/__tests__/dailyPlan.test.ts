@@ -1,3 +1,4 @@
+import { SEGMENTS } from '../core/segments';
 import { adaptDifficulty, ATTENTION, buildDailyPlan, DailyInput, RECOGNITION } from '../core/dailyPlan';
 import { memoryOptions, scoreMemory } from '../core/memoryChallenge';
 import { createRng } from '../core/rng';
@@ -86,5 +87,25 @@ describe('günlük süreye göre antrenman', () => {
     expect(plan.some((p) => p.kind === 'comprehension')).toBe(true);
     const exercises = plan.filter((p) => p.kind === 'attention' || p.kind === 'recognition').map((p) => p.ref);
     expect(new Set(exercises).size).toBe(exercises.length);
+  });
+});
+
+describe('günler arası tekrar', () => {
+  const day = (i: number) => new Date(Date.UTC(2026, 11, 1 + i)).toISOString().slice(0, 10);
+  it.each(['exam', 'work', 'books', 'self'] as const)('%s: 60 gün, her süre için hata vermeden ve dünü aynen yinelemeden', (segment) => {
+    const group = SEGMENTS[segment];
+    for (const minutes of [5, 10, 15, 20]) {
+      let previousRefs: string[] = [];
+      for (let i = 0; i < 60; i++) {
+        const plan = buildDailyPlan({ ...input, date: day(i), segment, minutes, previousRefs });
+        const exercises = plan.filter((p) => p.kind === 'attention' || p.kind === 'recognition').map((p) => p.ref);
+        expect(new Set(exercises).size).toBe(exercises.length);
+        exercises.forEach((ref) => expect([...group.attention, ...group.recognition]).toContain(ref));
+        // Kısa sürelerde dünün hiçbir egzersizi ve metni gelmez.
+        if (minutes <= 10) plan.forEach((p) => expect(previousRefs).not.toContain(p.ref));
+        expect(plan.map((p) => p.ref)).not.toEqual(previousRefs);
+        previousRefs = plan.map((p) => p.ref);
+      }
+    }
   });
 });

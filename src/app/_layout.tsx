@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, useSegments } from 'expo-router';
+import { useIsPremium } from '../store/premiumStore';
 import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -24,6 +25,10 @@ export default function RootLayout() {
   const error = useAppStore((s) => s.error);
   const hydrate = useAppStore((s) => s.hydrate);
   const { colors, scheme } = useTheme();
+  const inTabs = useSegments()[0] === '(tabs)';
+  const isPremium = useIsPremium();
+  // Sekmelerde üstte koyu premium bandı varken durum çubuğu iki temada da açık yazılır.
+  const barStyle = scheme === 'dark' || (inTabs && !isPremium) ? 'light' : 'dark';
 
   useEffect(() => {
     hydrate();
@@ -53,7 +58,7 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+      <StatusBar style={barStyle} />
       <Stack
         screenOptions={{
           headerStyle: { backgroundColor: colors.surface },
@@ -61,13 +66,15 @@ export default function RootLayout() {
           headerTitleStyle: { color: colors.text },
           contentStyle: { backgroundColor: colors.background },
           headerBackButtonDisplayMode: 'minimal',
+          // iOS durum çubuğunu ekran bazında yönetir.
+          statusBarStyle: scheme === 'dark' ? 'light' : 'dark',
         }}
       >
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="paragraph/practice" options={{ title: t('exam.dailyTitle') }} />
         <Stack.Screen name="paragraph/technique/[type]" options={{ title: t('exam.howTitle') }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false, statusBarStyle: scheme === 'dark' || !isPremium ? 'light' : 'dark' }} />
         <Stack.Screen name="level-test" options={{ title: t('levelTest.title'), presentation: 'modal' }} />
         <Stack.Screen name="profile" options={{ title: t('profile.title'), presentation: 'modal' }} />
         <Stack.Screen name="settings" options={{ title: t('settings.title') }} />

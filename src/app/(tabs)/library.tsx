@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { PremiumBanner } from '../../components/Premium';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text_ } from '../../components/ui';
 import { repositories } from '../../repositories';
@@ -44,8 +43,6 @@ export default function LibraryScreen() {
 
   const header = (
     <View style={{ gap: spacing.lg, paddingBottom: spacing.md }}>
-      <PremiumBanner />
-
       <Text_ variant="title" accessibilityRole="header">{t('library.title')}</Text_>
 
       {/* Arama */}

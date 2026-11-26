@@ -2,7 +2,6 @@ import React, { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { PremiumBanner } from '../../components/Premium';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Text_ } from '../../components/ui';
 import { LineChart } from '../../components/LineChart';
@@ -87,8 +86,6 @@ export default function ProgressScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background, paddingTop: insets.top }}>
       <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl, paddingBottom: spacing.xl }} showsVerticalScrollIndicator={false}>
-        <PremiumBanner />
-
         <ProfileCard streak={data.streak} bestStreak={data.bestStreak} />
 
         {/* Genel bakış: dört sayı */}

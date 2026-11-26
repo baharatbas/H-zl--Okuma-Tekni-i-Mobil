@@ -60,11 +60,20 @@ export function DailyTraining({ plan, totalXp, children }: { plan: DailyTaskRow[
 
       {children}
 
-      {plan.map((task) => {
+      {/* Tamamlanan görevler listeden kalkar; sayısı üstteki kartta görünür. */}
+      {plan.length > 0 && done === plan.length ? (
+        <View style={{ alignItems: 'center', gap: spacing.sm, padding: spacing.xl, borderRadius: 20, backgroundColor: colors.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border }}>
+          <Ionicons name='checkmark-circle' size={48} color={colors.success} />
+          <Text_ variant='heading'>{t('daily.allDone')}</Text_>
+          <Text_ variant='caption' muted style={{ textAlign: 'center' }}>{t('daily.tomorrow')}</Text_>
+        </View>
+      ) : null}
+
+      {plan.filter((p) => !p.completed).map((task) => {
         const kind = KINDS[task.kind];
         const locked = isLocked(task, plan);
         const current = next?.position === task.position;
-        const status = task.completed ? t('course.doneBadge') : locked ? t('daily.memoryLocked') : dailyTitle(task);
+        const status = locked ? t('daily.memoryLocked') : dailyTitle(task);
         return (
           <Pressable
             key={task.position}
@@ -78,8 +87,8 @@ export function DailyTraining({ plan, totalXp, children }: { plan: DailyTaskRow[
             }}
             style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: 20, backgroundColor: colors.surface, borderWidth: current ? 2 : StyleSheet.hairlineWidth, borderColor: current ? colors.primary : colors.border, opacity: pressed ? 0.8 : locked ? 0.55 : 1 })}
           >
-            <View style={{ width: 48, height: 48, borderRadius: radius.md, backgroundColor: task.completed ? colors.success : kind.color + '1F', alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name={task.completed ? 'checkmark' : locked ? 'lock-closed' : kind.icon} size={24} color={task.completed ? '#FFFFFF' : kind.color} />
+            <View style={{ width: 48, height: 48, borderRadius: radius.md, backgroundColor: kind.color + '1F', alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name={locked ? 'lock-closed' : kind.icon} size={24} color={kind.color} />
             </View>
             <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
               <Text_ variant="label">{t(`daily.kind.${task.kind}`)}</Text_>

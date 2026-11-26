@@ -163,7 +163,7 @@ Hoş geldin → hedef → günlük süre (5/10/15/20 dk) → 3 metinli başlang�
 
 ## Premium
 
-Beş sekmenin üstünde premium kartı görünür; `useIsPremium()` doğruysa gizlenir. Satın alma henüz bağlı değildir ve fiyatlar örnektir (`src/components/Premium.tsx`). RevenueCat eklenince `src/store/premiumStore.ts` içindeki `setPremium` yetki durumuna göre çağrılmalı, fiyatlar mağazadan okunmalıdır. RevenueCat yerel modül içerdiği için geliştirme derlemesi gerekir ve satın alma verisi sunucuya gider; gizlilik metni buna göre güncellenmelidir.
+Beş sekmenin en üstünde sabit premium bandı görünür (`src/app/(tabs)/_layout.tsx`); `useIsPremium()` doğruysa gizlenir. Satın alma henüz bağlı değildir ve fiyatlar örnektir (`src/components/Premium.tsx`). RevenueCat eklenince `src/store/premiumStore.ts` içindeki `setPremium` yetki durumuna göre çağrılmalı, fiyatlar mağazadan okunmalıdır. RevenueCat yerel modül içerdiği için geliştirme derlemesi gerekir ve satın alma verisi sunucuya gider; gizlilik metni buna göre güncellenmelidir.
 
 ## Kalıcı veri
 

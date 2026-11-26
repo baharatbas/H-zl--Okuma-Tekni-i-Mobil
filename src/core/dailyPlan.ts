@@ -54,14 +54,18 @@ export function adaptDifficulty(history: DailyInput['history'], key: string, lev
   return Math.min(5, Math.max(1, mine[0].difficulty + step));
 }
 
-/** Dün yapılanı atlar; uzun süredir oynanmayan (ya da hiç oynanmamış) üç aday arasından seçer. */
-function pickExercise(rng: Rng, pool: ExerciseKey[], input: DailyInput): ExerciseKey {
+/**
+ * Dün yapılanı atlar; uzun süredir oynanmayan (ya da hiç oynanmamış) üç aday arasından seçer.
+ * Küçük havuzlarda dünden başka seçenek kalmazsa yalnızca bugün seçilenler dışlanır.
+ */
+function pickExercise(rng: Rng, pool: ExerciseKey[], input: DailyInput, today: string[] = []): ExerciseKey {
   const rank = (key: string) => {
     const i = input.history.findIndex((h) => h.key === key);
     return i === -1 ? Number.MAX_SAFE_INTEGER : i;
   };
-  const candidates = pool
-    .filter((k) => !input.previousRefs.includes(k))
+  const open = pool.filter((k) => !today.includes(k));
+  const fresh = open.filter((k) => !input.previousRefs.includes(k));
+  const candidates = (fresh.length > 0 ? fresh : open)
     .map((k) => ({ k, rank: rank(k), tie: rng() }))
     .sort((a, b) => b.rank - a.rank || a.tie - b.tie)
     .slice(0, 3);
@@ -84,7 +88,7 @@ export function buildDailyPlan(input: DailyInput): DailyTask[] {
   const wpm = LEVEL_PARAMS[input.level].defaultReadingWpm;
   const group = SEGMENTS[input.segment ?? 'self'];
   const attention = pickExercise(rng, group.attention, input);
-  const recognition = pickExercise(rng, group.recognition, input);
+  const recognition = pickExercise(rng, group.recognition, input, [attention]);
   // Akıcılık ve test ayrı metin kullanır: aynı metni iki kez okumak ölçülen hızı şişirirdi.
   const fluency = pickText(rng, input, input.previousRefs);
   const test = pickText(rng, input, [...input.previousRefs, fluency.key]);
@@ -101,16 +105,15 @@ export function buildDailyPlan(input: DailyInput): DailyTask[] {
   let chosen = tasks;
   if (target <= 5) chosen = [tasks[0], tasks[3]];
   else if (target > 10) {
-    const used = (extra: string[]) => ({ ...input, previousRefs: [...input.previousRefs, attention, recognition, ...extra] });
-    const attention2 = pickExercise(rng, group.attention, used([]));
-    const recognition2 = pickExercise(rng, group.recognition, used([attention2]));
+    const attention2 = pickExercise(rng, group.attention, input, [attention, recognition]);
+    const recognition2 = pickExercise(rng, group.recognition, input, [attention, recognition, attention2]);
     const more: typeof tasks = [
       { kind: 'attention', ref: attention2, difficulty: adaptDifficulty(input.history, attention2, input.level), minutes: 2 },
       { kind: 'recognition', ref: recognition2, difficulty: adaptDifficulty(input.history, recognition2, input.level), minutes: 2 },
     ];
     if (target > 15) {
       const fluency2 = pickText(rng, input, [...input.previousRefs, fluency.key, test.key]);
-      const attention3 = pickExercise(rng, group.attention, used([attention2, recognition2]));
+      const attention3 = pickExercise(rng, group.attention, input, [attention, recognition, attention2, recognition2]);
       more.push(
         { kind: 'fluency', ref: fluency2.key, difficulty: base, minutes: Math.ceil(fluency2.words / wpm) + 1 },
         { kind: 'attention', ref: attention3, difficulty: adaptDifficulty(input.history, attention3, input.level), minutes: 2 },

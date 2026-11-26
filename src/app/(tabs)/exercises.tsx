@@ -2,7 +2,6 @@ import React, { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { PremiumBanner } from '../../components/Premium';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text_ } from '../../components/ui';
 import { DailySetCard, TypeList } from '../../components/ParagraphHub';
@@ -52,8 +51,6 @@ export default function ExercisesScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background, paddingTop: insets.top }}>
       <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl, paddingBottom: spacing.xl }} showsVerticalScrollIndicator={false}>
-        <PremiumBanner />
-
         <View style={{ gap: spacing.xs }}>
           <Text_ variant="title" accessibilityRole="header">{isExam ? t('exam.hubTitle') : t('exercises.title')}</Text_>
           <Text_ muted>{isExam ? t('exam.hubSubtitle') : t('exercises.shortSubtitle', { count: EXERCISE_KEYS.length })}</Text_>
