@@ -57,7 +57,7 @@ export default function ReaderSetupScreen() {
         </View>
       ) : null}
       <Card style={{ padding: 0, overflow: 'hidden' }}>
-        <View style={{ padding: spacing.md, backgroundColor: colors.paper, borderLeftWidth: 3, borderLeftColor: colors.margin }}>
+        <View style={{ padding: spacing.md, backgroundColor: colors.paper }}>
           <Text_ variant="caption" muted style={{ color: colors.paperInk }}>{t('reader.previewTitle')}</Text_>
           <Text_ style={{ color: colors.paperInk, fontSize: scale(settings.readingFontSize * 0.7), lineHeight: lineHeight * 0.7, marginTop: spacing.xs }}>
             {preview}

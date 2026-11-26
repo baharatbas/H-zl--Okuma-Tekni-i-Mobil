@@ -361,6 +361,13 @@ export const tr = {
     readingWpm: 'Okuma hızın',
     toTest: 'Teste geç',
     backToText: 'Metne dön',
+    statSpeed: 'kelime/dk',
+    statWords: 'kelime',
+    statRemaining: 'kalan süre',
+    hintStart: 'Başlamak için oynat düğmesine dokun',
+    hintPaused: 'Duraklatıldı',
+    hintPlaying: 'Gözlerini ortada tut ve akışı izle',
+    finishedDetail: '{count} kelime · {time}',
   },
   library: {
     searchPlaceholder: 'Metin ara',
