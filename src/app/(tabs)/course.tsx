@@ -16,12 +16,15 @@ import { haptic } from '../../services/haptics';
 import { examRef, isTrackMismatch } from '../../core/exam/course';
 import { useTrack } from '../../hooks/useTrack';
 import { TECHNIQUES } from '../../content/exam/techniques';
+import { findTactic } from '../../content/tactics';
 
 /** Ünitelerin sırayla kullandığı sakin vurgu renkleri. */
 const UNIT_COLORS = ['#2F7F86', '#3B75AE', '#76609E', '#B07A2A', '#3D8B5A'];
 
 const typeLabel = (l: LessonRow) =>
-  examRef(l.contentRef)
+  findTactic(l.contentRef)
+    ? t('course.stepTactic')
+    : examRef(l.contentRef)
     ? t(examRef(l.contentRef)!.kind === 'tech' ? 'exam.stepTech' : 'exam.stepPractice')
     : l.type === 'exercise' ? t('course.stepExercise') : l.type === 'reading' ? t('course.stepReading') : t('course.stepTest');
 
@@ -172,7 +175,7 @@ export default function CourseScreen() {
                         {i > 0 && <View style={{ position: 'absolute', top: 0, height: '50%', width: 2, backgroundColor: colors.border }} />}
                         {i < lessons.length - 1 && <View style={{ position: 'absolute', bottom: 0, height: '50%', width: 2, backgroundColor: colors.border }} />}
                         <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: nodeBg, alignItems: 'center', justifyContent: 'center' }}>
-                          <Ionicons name={lesson.isCompleted ? 'checkmark' : locked ? 'lock-closed' : lessonStepIcon(lesson.type)} size={18} color={nodeFg} />
+                          <Ionicons name={lesson.isCompleted ? 'checkmark' : locked ? 'lock-closed' : findTactic(lesson.contentRef) ? 'bulb-outline' : lessonStepIcon(lesson.type)} size={18} color={nodeFg} />
                         </View>
                       </View>
                       <View style={{ flex: 1, minWidth: 0, paddingVertical: spacing.sm }}>

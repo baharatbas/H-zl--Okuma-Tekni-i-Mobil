@@ -1,6 +1,7 @@
 import { buildCourse, isStepUnlocked, nextUnlockedStep } from '../core/course';
 import { LEVELS } from '../core/levels';
 import { BUILTIN_TEXTS } from '../content/builtinTexts';
+import { findTactic, TACTICS } from '../content/tactics';
 import { EXERCISE_KEYS } from '../core/exercises/registry';
 
 describe('kurs üretimi', () => {
@@ -10,6 +11,7 @@ describe('kurs üretimi', () => {
     steps.forEach((s, i) => {
       expect(s.orderIndex).toBe(i);
       if (s.type === 'exercise') expect(EXERCISE_KEYS).toContain(s.contentRef);
+      else if (findTactic(s.contentRef)) expect(s.type).toBe('reading');
       else expect(BUILTIN_TEXTS.map((t) => t.key)).toContain(s.contentRef);
     });
   });
@@ -20,6 +22,15 @@ describe('kurs üretimi', () => {
     expect(unit1[unit1.length - 2].type).toBe('reading');
     expect(unit1[unit1.length - 1].type).toBe('test');
     expect(unit1[0].type).toBe('exercise');
+  });
+
+  it('her taktik ünitesi taktik → egzersiz → okuma → test sırasındadır', () => {
+    const steps = buildCourse('beginner');
+    for (const tactic of TACTICS) {
+      const first = steps.find((s) => s.contentRef === `tactic:${tactic.key}`)!;
+      const unit = steps.filter((s) => s.unit === first.unit);
+      expect(unit.map((s) => s.type)).toEqual(['reading', 'exercise', 'reading', 'test']);
+    }
   });
 
   it('zorluk seviyeye göre artar', () => {

@@ -277,3 +277,16 @@ describe('kütüphane özet listesi', () => {
     expect(rows.every((r) => r.questions === 3 && r.preview.length <= 200)).toBe(true);
   });
 });
+
+describe('süren kursun yeni derslerle uzaması', () => {
+  it('tamamlanan adımları koruyup eksik adımları sona ekler', () => {
+    const { db, course } = setup();
+    const full = course.start('beginner');
+    course.completeLesson(full.id, 0);
+    db.runSync('DELETE FROM course_lessons WHERE course_id = ? AND order_index >= 16', [full.id]);
+    const grown = course.getActive()!;
+    expect(grown.lessons).toHaveLength(full.lessons.length);
+    expect(grown.lessons[0].isCompleted).toBe(true);
+    expect(course.getActive()!.lessons).toHaveLength(full.lessons.length);
+  });
+});

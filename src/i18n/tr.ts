@@ -209,6 +209,11 @@ export const tr = {
     startReading: 'Okumaya başla',
   },
   course: {
+    stepTactic: 'Taktik',
+    lessonTactic: 'Taktik: {title}',
+    tacticHow: 'Nasıl uygulanır?',
+    tacticTask: 'Şimdi dene',
+    tacticDone: 'Anladım, devam et',
     levelProgress: '{done}/{total} seviye geçildi',
     eyebrow: 'Kişisel kursun',
     begin: 'Kursa başla',

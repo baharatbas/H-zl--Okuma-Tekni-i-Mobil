@@ -4,6 +4,7 @@
  */
 import type { Level } from './levels';
 import type { ExerciseKey } from './exercises/types';
+import { TACTIC_PREFIX, TACTICS } from '../content/tactics';
 
 export type LessonType = 'exercise' | 'reading' | 'test';
 
@@ -31,6 +32,16 @@ const UNIT_TEXTS: Record<Level, string[]> = {
   advanced: ['builtin-economy', 'builtin-science', 'builtin-philosophy'],
 };
 
+/**
+ * Temel ünitelerden sonra gelen taktik ünitelerinin okuma metinleri (TACTICS sırasıyla).
+ * Taktik üniteleri sona eklenir; böylece süren kurslar ilerleme kaybetmeden uzar.
+ */
+const TACTIC_TEXTS: Record<Level, string[]> = {
+  beginner: ['builtin-market', 'builtin-forest', 'builtin-walking', 'builtin-ants', 'builtin-tea', 'builtin-neighbours', 'builtin-seeds', 'builtin-saving'],
+  intermediate: ['builtin-sleep', 'builtin-river', 'builtin-museum', 'builtin-habits', 'builtin-listening', 'builtin-maps', 'builtin-migration', 'builtin-soil'],
+  advanced: ['builtin-vaccine', 'builtin-glacier', 'builtin-architecture', 'builtin-attention', 'builtin-decisions', 'builtin-scientific-method', 'builtin-internet', 'builtin-slow-reading'],
+};
+
 export function buildCourse(level: Level): LessonStep[] {
   const steps: LessonStep[] = [];
   const exerciseUnits = UNIT_EXERCISES[level];
@@ -47,6 +58,17 @@ export function buildCourse(level: Level): LessonStep[] {
     const afterExercises = steps.length;
     steps.push({ orderIndex: afterExercises, type: 'reading', contentRef: textKey, unit, difficulty });
     steps.push({ orderIndex: afterExercises + 1, type: 'test', contentRef: textKey, unit, difficulty });
+  });
+
+  TACTICS.forEach((tactic, i) => {
+    const unit = exerciseUnits.length + i + 1;
+    const textKey = TACTIC_TEXTS[level][i];
+    const add = (type: LessonType, contentRef: string) =>
+      steps.push({ orderIndex: steps.length, type, contentRef, unit, difficulty });
+    add('reading', `${TACTIC_PREFIX}${tactic.key}`);
+    add('exercise', tactic.exercise);
+    add('reading', textKey);
+    add('test', textKey);
   });
   return steps;
 }
@@ -99,7 +121,8 @@ const UNIT_META: Record<Level, UnitMeta[]> = {
 };
 
 export function unitMeta(level: Level, unit: number): UnitMeta {
-  return UNIT_META[level][unit - 1] ?? { title: `Ünite ${unit}`, goal: '' };
+  const tactic = TACTICS[unit - UNIT_META[level].length - 1];
+  return UNIT_META[level][unit - 1] ?? (tactic ? { title: tactic.title, goal: tactic.goal } : { title: `Ünite ${unit}`, goal: '' });
 }
 
 /** Egzersiz adımında geçilmesi gereken zorluk seviyeleri. */

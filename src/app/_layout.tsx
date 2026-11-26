@@ -74,6 +74,7 @@ export default function RootLayout() {
         <Stack.Screen name="exercise/[key]" options={{ title: t('exercises.title') }} />
         <Stack.Screen name="reader/[id]" options={{ title: t('reader.title') }} />
         <Stack.Screen name="reading/[id]" options={{ title: t('reader.title') }} />
+        <Stack.Screen name="tactic/[key]" options={{ title: t('course.stepTactic') }} />
         <Stack.Screen name="test/[id]" options={{ title: t('test.title') }} />
         <Stack.Screen name="library/[id]" options={{ title: t('library.title') }} />
         <Stack.Screen name="library/edit" options={{ title: t('library.newText'), presentation: 'modal' }} />

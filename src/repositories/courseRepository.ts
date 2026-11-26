@@ -90,10 +90,38 @@ export function createCourseRepository(db: SqlDb): CourseRepository {
     };
   }
 
+  /** Eski bir genel kursa sonradan eklenen adımları sona ekler; tamamlananlar korunur. */
+  function extend(courseId: number): void {
+    const course = db.getFirstSync<{ level: Level }>('SELECT level FROM courses WHERE id = ?', [courseId]);
+    if (!course) return;
+    const rows = db.getAllSync<{ type: string; content_ref: string }>(
+      'SELECT type, content_ref FROM course_lessons WHERE course_id = ? ORDER BY order_index',
+      [courseId],
+    );
+    const steps = buildCourse(course.level);
+    // Yalnızca mevcut adımlar güncel planın başıyla birebir aynıysa uzatılır (sınav kursu eşleşmez).
+    const isPrefix = rows.length > 0 && rows.length < steps.length && rows.every((r, i) => r.type === steps[i].type && r.content_ref === steps[i].contentRef);
+    if (!isPrefix) return;
+    db.withTransactionSync(() => {
+      for (const step of steps.slice(rows.length)) insertStep(courseId, step);
+      db.runSync('UPDATE courses SET completed_at = NULL WHERE id = ?', [courseId]);
+    });
+  }
+
+  function insertStep(courseId: number, step: LessonStep): void {
+    db.runSync(
+      `INSERT INTO course_lessons (course_id, order_index, type, content_ref, unit, difficulty, is_completed)
+       VALUES (?, ?, ?, ?, ?, ?, 0)`,
+      [courseId, step.orderIndex, step.type, step.contentRef, step.unit, step.difficulty],
+    );
+  }
+
   return {
     getActive() {
       const row = db.getFirstSync<{ id: number }>('SELECT id FROM courses ORDER BY id DESC LIMIT 1');
-      return row ? load(row.id) : null;
+      if (!row) return null;
+      extend(row.id);
+      return load(row.id);
     },
 
     start(level) {
@@ -108,11 +136,7 @@ export function createCourseRepository(db: SqlDb): CourseRepository {
         );
         courseId = res.lastInsertRowId;
         for (const step of exam ? buildExamCourse(level) : buildCourse(level)) {
-          db.runSync(
-            `INSERT INTO course_lessons (course_id, order_index, type, content_ref, unit, difficulty, is_completed)
-             VALUES (?, ?, ?, ?, ?, ?, 0)`,
-            [courseId, step.orderIndex, step.type, step.contentRef, step.unit, step.difficulty],
-          );
+          insertStep(courseId, step);
         }
       });
       return load(courseId)!;

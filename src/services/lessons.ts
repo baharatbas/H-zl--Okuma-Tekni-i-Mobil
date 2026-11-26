@@ -7,9 +7,12 @@ import { t } from '../i18n';
 import { examRef } from '../core/exam/course';
 import { TECHNIQUES } from '../content/exam/techniques';
 import { lessonNote } from '../content/lessonNotes';
+import { findTactic } from '../content/tactics';
 
 /** Kurs adımının ekranda görünen başlığı. */
 export function lessonTitle(lesson: LessonRow): string {
+  const tactic = findTactic(lesson.contentRef);
+  if (tactic) return t('course.lessonTactic', { title: tactic.title });
   const exam = examRef(lesson.contentRef);
   if (exam) return t(exam.kind === 'tech' ? 'exam.lessonTech' : 'exam.lessonPractice', { type: TECHNIQUES[exam.type].title });
   if (lesson.type === 'exercise') return EXERCISES[lesson.contentRef as ExerciseKey]?.name ?? lesson.contentRef;
@@ -22,6 +25,8 @@ export function lessonTitle(lesson: LessonRow): string {
  * ilgili adım tamamlanır.
  */
 export function lessonRoute(lesson: LessonRow): string {
+  const tactic = findTactic(lesson.contentRef);
+  if (tactic) return `/tactic/${tactic.key}?lesson=${lesson.orderIndex}`;
   const exam = examRef(lesson.contentRef);
   if (exam?.kind === 'tech') return `/paragraph/technique/${exam.type}?lesson=${lesson.orderIndex}`;
   if (exam) return `/paragraph/practice?type=${exam.type}&lesson=${lesson.orderIndex}`;
@@ -38,6 +43,8 @@ export function lessonStepIcon(type: LessonRow['type']): 'play-circle-outline' |
 
 /** Adımın öğrenme hedefi: egzersiz için kısa açıklama, okuma/test için metin hedefi. */
 export function lessonGoal(lesson: LessonRow): string {
+  const tactic = findTactic(lesson.contentRef);
+  if (tactic) return tactic.goal;
   const exam = examRef(lesson.contentRef);
   if (exam) return TECHNIQUES[exam.type].goal;
   if (lesson.type === 'exercise') return EXERCISES[lesson.contentRef as ExerciseKey]?.goal ?? '';
