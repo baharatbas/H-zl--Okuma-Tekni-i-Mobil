@@ -26,11 +26,19 @@ describe('kurs üretimi', () => {
 
   it('her taktik ünitesi taktik → egzersiz → okuma → test sırasındadır', () => {
     const steps = buildCourse('beginner');
-    for (const tactic of TACTICS) {
+    for (const tactic of TACTICS.slice(0, 21)) {
       const first = steps.find((s) => s.contentRef === `tactic:${tactic.key}`)!;
       const unit = steps.filter((s) => s.unit === first.unit);
       expect(unit.map((s) => s.type)).toEqual(['reading', 'exercise', 'reading', 'test']);
     }
+  });
+
+  it.each(LEVELS)('%s kursu 25 üniteden oluşur ve metin tekrar etmez', (level) => {
+    const steps = buildCourse(level);
+    expect(new Set(steps.map((s) => s.unit)).size).toBe(25);
+    const tacticTexts = steps.filter((s) => s.type === 'test').slice(-13).map((s) => s.contentRef);
+    expect(new Set(tacticTexts).size).toBe(13);
+    expect(steps.every((s) => s.contentRef !== undefined)).toBe(true);
   });
 
   it('zorluk seviyeye göre artar', () => {

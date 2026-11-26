@@ -132,7 +132,7 @@ bir işlem içinde çalıştırır.
 
 Kurstaki bir egzersiz adımı, 5 zorluk seviyesinin hepsi en az 60 puanla geçilince tamamlanır ve sıradaki adım açılır. Egzersiz sekmesinden oynanan oturumlar kurs adımına sayılmaz.
 
-Genel kursta temel ünitelerin ardından 8 taktik ünitesi gelir (taktik dersi → egzersiz → okuma → test); içerik `src/content/tactics.ts` dosyasındadır. Süren kurslar, tamamlanan adımlar korunarak yeni derslerle uzatılır.
+Genel kursta temel ünitelerin ardından taktik üniteleri gelir; kurs toplam 25 ünitedir (taktik dersi → egzersiz → okuma → test); içerik `src/content/tactics.ts` dosyasındadır. Süren kurslar, tamamlanan adımlar korunarak yeni derslerle uzatılır.
 
 ## Günlük antrenman
 

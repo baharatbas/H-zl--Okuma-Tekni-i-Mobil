@@ -37,10 +37,13 @@ const UNIT_TEXTS: Record<Level, string[]> = {
  * Taktik üniteleri sona eklenir; böylece süren kurslar ilerleme kaybetmeden uzar.
  */
 const TACTIC_TEXTS: Record<Level, string[]> = {
-  beginner: ['builtin-market', 'builtin-forest', 'builtin-walking', 'builtin-ants', 'builtin-tea', 'builtin-neighbours', 'builtin-seeds', 'builtin-saving'],
-  intermediate: ['builtin-sleep', 'builtin-river', 'builtin-museum', 'builtin-habits', 'builtin-listening', 'builtin-maps', 'builtin-migration', 'builtin-soil'],
-  advanced: ['builtin-vaccine', 'builtin-glacier', 'builtin-architecture', 'builtin-attention', 'builtin-decisions', 'builtin-scientific-method', 'builtin-internet', 'builtin-slow-reading'],
+  beginner: ['builtin-market', 'builtin-forest', 'builtin-walking', 'builtin-ants', 'builtin-tea', 'builtin-neighbours', 'builtin-seeds', 'builtin-saving', 'builtin-night-animals', 'builtin-morning-routine', 'builtin-volunteer', 'builtin-balcony-cat', 'builtin-cooking', 'builtin-letters', 'builtin-screen-break', 'builtin-curiosity', 'builtin-patience', 'builtin-shadow-play', 'builtin-maps', 'builtin-empathy', 'builtin-coral'],
+  intermediate: ['builtin-sleep', 'builtin-river', 'builtin-museum', 'builtin-habits', 'builtin-listening', 'builtin-maps', 'builtin-migration', 'builtin-soil', 'builtin-coral', 'builtin-electricity', 'builtin-marbling', 'builtin-proverbs', 'builtin-magnet', 'builtin-senses', 'builtin-mistakes', 'builtin-gravity', 'builtin-theatre', 'builtin-water-states', 'builtin-simplicity', 'builtin-library-history', 'builtin-screen-break'],
+  advanced: ['builtin-vaccine', 'builtin-glacier', 'builtin-architecture', 'builtin-attention', 'builtin-decisions', 'builtin-scientific-method', 'builtin-internet', 'builtin-slow-reading', 'builtin-volcano', 'builtin-microscope', 'builtin-storytelling', 'builtin-curiosity', 'builtin-empathy', 'builtin-mistakes', 'builtin-river', 'builtin-listening', 'builtin-habits', 'builtin-sleep', 'builtin-museum', 'builtin-patience', 'builtin-maps'],
 };
+
+/** Genel kurstaki toplam ünite sayısı (temel üniteler + taktik üniteleri). */
+export const TOTAL_UNITS = 25;
 
 export function buildCourse(level: Level): LessonStep[] {
   const steps: LessonStep[] = [];
@@ -60,7 +63,7 @@ export function buildCourse(level: Level): LessonStep[] {
     steps.push({ orderIndex: afterExercises + 1, type: 'test', contentRef: textKey, unit, difficulty });
   });
 
-  TACTICS.forEach((tactic, i) => {
+  TACTICS.slice(0, TOTAL_UNITS - exerciseUnits.length).forEach((tactic, i) => {
     const unit = exerciseUnits.length + i + 1;
     const textKey = TACTIC_TEXTS[level][i];
     const add = (type: LessonType, contentRef: string) =>
