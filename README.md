@@ -137,6 +137,6 @@ Genel kursta temel ünitelerin ardından 8 taktik ünitesi gelir (taktik dersi �
 ## Kalıcı veri
 
 - Tüm kullanıcı verisi cihazdaki SQLite veritabanındadır (`hizlioku.db`): profil, ad, profil fotoğrafı (`profile_photo`), ayarlar, kurs ilerlemesi, test / okuma / egzersiz / paragraf sonuçları, günlük hedef ve seri.
-- Şema sürümü 5. Kütüphanede 70 hazır metin vardır (ek metinler `src/content/library/`); liste, metin gövdelerini yüklemeyen tek bir sorguyla gelir. Kullanıcı bir metni sildiğinde metin yalnızca gizlenir (`deleted_at`); geçmiş sonuçlar korunur.
+- Şema sürümü 6. Taktik dersi, alıştırmasının 5 seviyesi geçilince onunla birlikte tamamlanır. Kütüphanede 70 hazır metin vardır (ek metinler `src/content/library/`); liste, metin gövdelerini yüklemeyen tek bir sorguyla gelir. Kullanıcı bir metni sildiğinde metin yalnızca gizlenir (`deleted_at`); geçmiş sonuçlar korunur.
 - Okuma hızı grafiği yalnızca testlerden hesaplanır: kelime sayısı ÷ okuma süresi (sorular hariç). 20–1200 kelime/dk dışındaki ölçümler grafiğe alınmaz.
 - Uygulama silinirse cihazdaki veriler de silinir (sunucu ve yedekleme yoktur).

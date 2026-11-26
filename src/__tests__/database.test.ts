@@ -31,8 +31,8 @@ function setup() {
 describe('migrasyonlar', () => {
   it('şemayı en son sürüme getirir ve tekrar çalıştırıldığında hiçbir şey uygulamaz', () => {
     const db = openMemoryDb();
-    expect(migrate(db)).toBe(5);
-    expect(currentSchemaVersion(db)).toBe(5);
+    expect(migrate(db)).toBe(6);
+    expect(currentSchemaVersion(db)).toBe(6);
     expect(migrate(db)).toBe(0);
   });
 
@@ -288,5 +288,43 @@ describe('süren kursun yeni derslerle uzaması', () => {
     expect(grown.lessons).toHaveLength(full.lessons.length);
     expect(grown.lessons[0].isCompleted).toBe(true);
     expect(course.getActive()!.lessons).toHaveLength(full.lessons.length);
+  });
+});
+
+describe('seviye kuralı sonradan eklenen ünitelerde de geçerli', () => {
+  it.each(['beginner', 'intermediate', 'advanced'] as const)('%s: her egzersiz adımı ancak 5 seviyeyle tamamlanır', (level) => {
+    const { course, exercises } = setup();
+    const c = course.start(level);
+    const steps = c.lessons.filter((l) => l.type === 'exercise');
+    expect(steps.some((l) => l.unit > 5)).toBe(true);
+    for (const step of steps) {
+      [1, 2, 3, 4, 5].forEach((difficulty, i) => {
+        exercises.recordSession(step.contentRef as any, { score: 60, accuracy: 0.6, avgResponseMs: null, durationMs: 1000 }, { speedMs: 1000, difficulty, courseLessonId: step.id });
+        const view = course.completeExerciseIfPassed(c.id, step.orderIndex);
+        expect(view.lessons[step.orderIndex].isCompleted).toBe(i === 4);
+      });
+    }
+  });
+});
+
+describe('taktik dersi alıştırmasıyla tamamlanır', () => {
+  it('alıştırma 5 seviyeyle geçilmeden taktik tik almaz', () => {
+    const { db, course, exercises } = setup();
+    const c = course.start('beginner');
+    const tactic = c.lessons.find((l) => l.contentRef.startsWith('tactic:'))!;
+    db.runSync('UPDATE course_lessons SET is_completed = 1 WHERE course_id = ? AND order_index < ?', [c.id, tactic.orderIndex]);
+    const at = (offset: number) => course.getActive()!.lessons[tactic.orderIndex + offset];
+    expect(at(0).unlocked).toBe(true);
+    expect(at(1).unlocked).toBe(true);
+    expect(at(2).unlocked).toBe(false);
+    const step = at(1);
+    [1, 2, 3, 4, 5].forEach((difficulty) => {
+      expect(at(0).isCompleted).toBe(false);
+      exercises.recordSession(step.contentRef as any, { score: 80, accuracy: 0.8, avgResponseMs: null, durationMs: 1000 }, { speedMs: 1000, difficulty, courseLessonId: step.id });
+      course.completeExerciseIfPassed(c.id, step.orderIndex);
+    });
+    expect(at(0).isCompleted).toBe(true);
+    expect(at(1).isCompleted).toBe(true);
+    expect(at(2).unlocked).toBe(true);
   });
 });

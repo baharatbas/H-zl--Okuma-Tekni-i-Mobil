@@ -82,14 +82,19 @@ export function nextUnlockedStep(
   return next ? next.orderIndex : null;
 }
 
-/** Bir adımın kilidi açık mı? İlk adım her zaman açıktır, diğerleri bir öncekinin tamamlanmasını bekler. */
+/**
+ * Bir adımın kilidi açık mı? İlk adım her zaman açıktır, diğerleri bir öncekinin tamamlanmasını bekler.
+ * İstisna: taktik dersi ancak alıştırmasıyla birlikte tamamlanır; bu yüzden alıştırma, taktik açıldığında açılır.
+ */
 export function isStepUnlocked(
-  steps: { orderIndex: number; isCompleted: boolean }[],
+  steps: { orderIndex: number; isCompleted: boolean; contentRef?: string }[],
   orderIndex: number,
 ): boolean {
   if (orderIndex === 0) return true;
   const prev = steps.find((s) => s.orderIndex === orderIndex - 1);
-  return prev ? prev.isCompleted : false;
+  if (!prev) return false;
+  if (prev.contentRef?.startsWith(TACTIC_PREFIX)) return isStepUnlocked(steps, prev.orderIndex);
+  return prev.isCompleted;
 }
 
 export interface UnitMeta {

@@ -169,6 +169,17 @@ export const MIGRATIONS: Migration[] = [
       'CREATE INDEX IF NOT EXISTS idx_tests_text ON tests(text_id)',
     ],
   },
+  {
+    version: 6,
+    name: 'tactic_completes_with_exercise',
+    statements: [
+      // Alıştırması bitmeden tik almış taktik dersleri geri alınır.
+      `UPDATE course_lessons SET is_completed = 0
+       WHERE content_ref LIKE 'tactic:%' AND EXISTS (
+         SELECT 1 FROM course_lessons n WHERE n.course_id = course_lessons.course_id
+           AND n.order_index = course_lessons.order_index + 1 AND n.is_completed = 0)`,
+    ],
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

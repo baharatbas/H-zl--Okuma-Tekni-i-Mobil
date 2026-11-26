@@ -3,6 +3,7 @@ import { Level } from '../core/levels';
 import { buildCourse, LessonStep, LessonType, isStepUnlocked, nextDifficulty, PASS_SCORE } from '../core/course';
 import { buildExamCourse } from '../core/exam/course';
 import { parseSettings } from '../core/settings';
+import { findTactic } from '../content/tactics';
 
 export interface LessonRow extends LessonStep {
   id: number;
@@ -62,7 +63,7 @@ export function createCourseRepository(db: SqlDb): CourseRepository {
        FROM course_lessons WHERE course_id = ? ORDER BY order_index`,
       [courseId],
     );
-    const base = rows.map((r) => ({ orderIndex: r.order_index, isCompleted: r.is_completed === 1 }));
+    const base = rows.map((r) => ({ orderIndex: r.order_index, isCompleted: r.is_completed === 1, contentRef: r.content_ref }));
     const lessons: LessonRow[] = rows.map((r) => ({
       id: r.id,
       orderIndex: r.order_index,
@@ -150,6 +151,9 @@ export function createCourseRepository(db: SqlDb): CourseRepository {
       const view = load(courseId)!;
       const lesson = view.lessons.find((l) => l.orderIndex === orderIndex);
       if (!lesson || lesson.isCompleted || nextDifficulty(lesson.passedLevels) !== null) return view;
+      // Alıştırmanın taktik dersi de onunla birlikte tamamlanır.
+      const before = view.lessons.find((l) => l.orderIndex === orderIndex - 1);
+      if (before && findTactic(before.contentRef)) this.completeLesson(courseId, before.orderIndex);
       return this.completeLesson(courseId, orderIndex);
     },
 

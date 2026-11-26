@@ -21,8 +21,8 @@ export default function TacticScreen() {
     const repos = repositories();
     const course = repos.course.getActive();
     if (!course) return router.back();
-    const updated = repos.course.completeLesson(course.id, Number(lesson));
-    const next = updated.lessons.find((l) => l.orderIndex === Number(lesson) + 1 && !l.isCompleted);
+    // Ders burada tamamlanmaz: alıştırmanın tüm seviyeleri geçilince birlikte işaretlenir.
+    const next = course.lessons.find((l) => l.orderIndex === Number(lesson) + 1 && !l.isCompleted && l.unlocked);
     if (next) router.replace(lessonRoute(next) as any);
     else router.back();
   };
@@ -56,6 +56,9 @@ export default function TacticScreen() {
         <Text_>{tactic.task}</Text_>
       </Card>
 
+      {lesson !== undefined && (
+        <Text_ variant="caption" muted style={{ textAlign: 'center' }}>{t('course.tacticRule')}</Text_>
+      )}
       <Button title={lesson === undefined ? t('common.back') : t('course.tacticDone')} onPress={finish} />
     </ScrollView>
   );
