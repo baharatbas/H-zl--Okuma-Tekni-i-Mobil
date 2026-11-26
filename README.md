@@ -157,6 +157,10 @@ Her kategoriye eklenen çalışmalar: `diagonal_jump`, `pacer_read`, `column_flo
 
 Öğrenci (`exam`), çalışan (`work`), kitap okuru (`books`) ve genel (`self`). Her grubun kursu, günlük antrenman havuzu, metin konuları, önerilen egzersizleri ve öne çıkan ölçüsü ayrıdır: `src/core/segments.ts`, `src/core/segmentCourse.ts`. Grup değişince kurs yeniden oluşturulur.
 
+## İlk açılış
+
+Hoş geldin → hedef → günlük süre (5/10/15/20 dk) → 3 metinli başlangıç testi → program. Seviye ve ölçümler test tamamen bitince kaydedilir; yarıda bırakılırsa akış yeniden açılır. Seçimler `user_profile.settings_json` içindedir, hesap gerekmez. Süre, günlük antrenmanın görev sayısını belirler (2/5/7/9).
+
 ## Premium
 
 Beş sekmenin üstünde premium kartı görünür; `useIsPremium()` doğruysa gizlenir. Satın alma henüz bağlı değildir ve fiyatlar örnektir (`src/components/Premium.tsx`). RevenueCat eklenince `src/store/premiumStore.ts` içindeki `setPremium` yetki durumuna göre çağrılmalı, fiyatlar mağazadan okunmalıdır. RevenueCat yerel modül içerdiği için geliştirme derlemesi gerekir ve satın alma verisi sunucuya gider; gizlilik metni buna göre güncellenmelidir.

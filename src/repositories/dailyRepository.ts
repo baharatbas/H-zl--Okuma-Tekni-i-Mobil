@@ -12,7 +12,7 @@ export interface DailyTaskRow extends DailyTask {
 
 export interface DailyRepository {
   /** Günün planını döner; yoksa o anki performansa göre oluşturup saklar. */
-  getPlan(date: string, level: Level, segment?: Segment): DailyTaskRow[];
+  getPlan(date: string, level: Level, segment?: Segment, minutes?: number): DailyTaskRow[];
   /** Hiç görevi tamamlanmamışsa günün planını siler (grup değişince yenisi üretilir). */
   reset(date: string): void;
   complete(date: string, position: number): void;
@@ -41,7 +41,7 @@ export function createDailyRepository(db: SqlDb): DailyRepository {
       db.runSync('DELETE FROM daily_tasks WHERE date = ? AND NOT EXISTS (SELECT 1 FROM daily_tasks d WHERE d.date = ? AND d.completed_at IS NOT NULL)', [date, date]);
     },
 
-    getPlan(date, level, segment = 'self') {
+    getPlan(date, level, segment = 'self', minutes = 10) {
       const existing = read(date);
       if (existing.length > 0) return existing;
 
@@ -67,6 +67,7 @@ export function createDailyRepository(db: SqlDb): DailyRepository {
         history,
         comprehension: comprehension ?? null,
         segment,
+        minutes,
         texts: preferred(segment).map((x) => ({ key: x.key, words: countWords(x.body) })),
         seenTexts: seen.map((r) => r.key),
         previousRefs: previous.map((r) => r.ref),

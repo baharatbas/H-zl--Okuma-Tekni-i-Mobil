@@ -16,8 +16,9 @@ export function OnboardingFrame({
   ctaDisabled,
   footer,
 }: {
-  step: number;
-  total: number;
+  /** Verilmezse ilerleme çubuğu gösterilmez (hoş geldin ekranı). */
+  step?: number;
+  total?: number;
   title: string;
   subtitle?: string;
   children?: React.ReactNode;
@@ -31,11 +32,13 @@ export function OnboardingFrame({
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingTop: insets.top + spacing.md, gap: spacing.lg, paddingBottom: spacing.xl }} showsVerticalScrollIndicator={false}>
-        <View style={{ flexDirection: 'row', gap: spacing.xs }} accessibilityLabel={`${step} / ${total}`}>
-          {Array.from({ length: total }, (_, i) => (
-            <View key={i} style={{ height: 4, flex: 1, borderRadius: 2, backgroundColor: i < step ? colors.primary : colors.surfaceAlt }} />
-          ))}
-        </View>
+        {step !== undefined && total !== undefined ? (
+          <View style={{ flexDirection: 'row', gap: spacing.xs }} accessibilityLabel={`${step} / ${total}`}>
+            {Array.from({ length: total }, (_, i) => (
+              <View key={i} style={{ height: 4, flex: 1, borderRadius: 2, backgroundColor: i < step ? colors.primary : colors.surfaceAlt }} />
+            ))}
+          </View>
+        ) : null}
         <View style={{ gap: spacing.sm, marginTop: spacing.md }}>
           <Text_ variant="display">{title}</Text_>
           {subtitle ? <Text_ muted>{subtitle}</Text_> : null}

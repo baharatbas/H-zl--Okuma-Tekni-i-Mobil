@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { ScrollView } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Button, Card, Empty, Screen, Text_ } from '../components/ui';
 import { ReadingTest, ReadingTestResult } from '../components/ReadingTest';
 import { MeasurementSummary } from '../components/MeasurementSummary';
@@ -14,7 +14,7 @@ import { recordActivity } from '../services/activity';
 import { spacing, useTheme } from '../theme';
 import { t } from '../i18n';
 
-type Part = { wordCount: number; durationMs: number; correctCount: number; totalCount: number };
+type Part = { wordCount: number; durationMs: number; correctCount: number; totalCount: number; testId: number; result: ReadingTestResult };
 
 const newSeed = () => Date.now() % 2147483647;
 
@@ -24,6 +24,7 @@ const newSeed = () => Date.now() % 2147483647;
  */
 export default function LevelTestScreen() {
   const { colors } = useTheme();
+  const { from } = useLocalSearchParams<{ from?: string }>();
   const repos = useMemo(() => repositories(), []);
   const [items] = useState(() => {
     const pool = BUILTIN_TEXTS.filter((x) => x.key !== LEVEL_TEST_KEY);
@@ -43,13 +44,15 @@ export default function LevelTestScreen() {
   const item = items[Math.min(index, items.length - 1)];
 
   const handleFinish = (r: ReadingTestResult) => {
-    const found = repos.texts.recordTestResult(item.test.id, r.outcome, r.durationMs, r.startedAt);
-    recordActivity(r.durationMs);
-    const nextParts = [...parts, { ...r.outcome, durationMs: r.durationMs }];
+    const nextParts = [...parts, { ...r.outcome, durationMs: r.durationMs, testId: item.test.id, result: r }];
     setParts(nextParts);
-    setFlags((prev) => [...new Set([...prev, ...found])]);
     setReading(false);
     if (index + 1 < items.length) return setIndex(index + 1);
+
+    // Üç metin de bitmeden hiçbir başlangıç ölçümü kaydedilmez.
+    const found = nextParts.flatMap((p) => repos.texts.recordTestResult(p.testId, p.result.outcome, p.durationMs, p.result.startedAt));
+    setFlags([...new Set(found)]);
+    recordActivity(nextParts.reduce((sum, p) => sum + p.durationMs, 0));
 
     const total = combineMeasurements(nextParts);
     const level = determineLevel(total.wpm, total.comprehension);
@@ -85,7 +88,9 @@ export default function LevelTestScreen() {
       <Text_ variant="title">{t('levelTest.resultLevel', { level: t(`levels.${result.level}`) })}</Text_>
       <MeasurementSummary wpm={total.wpm} comprehension={total.comprehension} correct={total.correct} total={total.total} flags={flags} />
       <Text_ muted variant="caption">{`${t('common.wpm', { value: LEVEL_PARAMS[result.level].targetWpm })} (${t('levelTest.targetLabel')})`}</Text_>
-      {result.hadCourse ? (
+      {from === 'onboarding' ? (
+        <Button title={t('common.next')} onPress={() => router.replace('/onboarding/ready' as any)} />
+      ) : result.hadCourse ? (
         <>
           <Button
             title={t('course.startNew')}

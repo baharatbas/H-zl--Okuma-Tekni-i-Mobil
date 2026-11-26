@@ -8,6 +8,8 @@ import { syncDailyReminder } from '../services/notifications';
 import { spacing, useTheme } from '../theme';
 import { TrackSelector } from '../components/TrackSelector';
 import { t } from '../i18n';
+import { DAILY_MINUTES } from '../core/dailyPlan';
+import { localDateString } from '../core/streak';
 import type { LearningMode, ThemeMode } from '../core/settings';
 
 const FONT_SCALES = [1, 1.15, 1.3, 1.5];
@@ -84,14 +86,21 @@ export default function SettingsScreen() {
 
       <Card style={{ gap: spacing.md }}>
         <Text_ variant="heading">{t('settings.learning')}</Text_>
-        <Stepper
-          label={t('settings.dailyGoal')}
-          value={settings.dailyGoalMinutes}
-          min={5}
-          max={120}
-          step={5}
-          onChange={(v) => update({ dailyGoalMinutes: v })}
-        />
+        <Text_ variant="label" muted>{t('settings.dailyGoal')}</Text_>
+        <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' }}>
+          {DAILY_MINUTES.map((m) => (
+            <Chip
+              key={m}
+              label={t('today.minutes', { count: m })}
+              selected={settings.dailyGoalMinutes === m}
+              onPress={() => {
+                update({ dailyGoalMinutes: m });
+                // Bugün hiç görev tamamlanmadıysa antrenman yeni süreye göre kurulur.
+                repositories().daily.reset(localDateString());
+              }}
+            />
+          ))}
+        </View>
         <Row label={t('settings.reminder')}>
           <Switch
             accessibilityLabel={t('settings.reminder')}

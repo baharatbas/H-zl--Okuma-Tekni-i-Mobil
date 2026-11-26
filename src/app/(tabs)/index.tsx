@@ -47,6 +47,7 @@ export default function TodayScreen() {
   const insets = useSafeAreaInsets();
   const { segment, isExam, exam } = useTrack();
   const level = useAppStore((s) => s.level);
+  const targetMinutes = useAppStore((s) => s.settings.dailyGoalMinutes);
   const displayName = useAppStore((s) => s.settings.displayName);
   const [data, setData] = useState<HomeData | null>(null);
 
@@ -57,7 +58,7 @@ export default function TodayScreen() {
     const last = series[series.length - 1];
     const attempts = repos.paragraphs.list();
     setData({
-      plan: repos.daily.getPlan(today, level ?? 'beginner', segment),
+      plan: repos.daily.getPlan(today, level ?? 'beginner', segment, targetMinutes),
       totalXp: repos.daily.totalXp(),
       streak: repos.progress.getStreak(today).current,
       week: repos.progress.getRecentMinutes(today, 7),
@@ -67,7 +68,7 @@ export default function TodayScreen() {
       paragraph: stats(attempts),
       weak: weakestType(attempts),
     });
-  }, [level, segment]);
+  }, [level, segment, targetMinutes]);
 
   useFocusEffect(load);
 

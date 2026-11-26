@@ -9,7 +9,7 @@ import { useAppStore } from '../../store/appStore';
 import { radius, spacing, useTheme } from '../../theme';
 import { t } from '../../i18n';
 
-/** İlk açılış 1/3: kullanım amacı ve isteğe bağlı hitap adı. */
+/** İlk açılış 1/4: hedef ve isteğe bağlı hitap adı. */
 export default function AboutScreen() {
   const { colors } = useTheme();
   const updateSettings = useAppStore((s) => s.updateSettings);
@@ -19,13 +19,13 @@ export default function AboutScreen() {
 
   const next = () => {
     updateSettings({ purpose, examTarget: target, displayName: name.trim() });
-    router.push('/onboarding/value');
+    router.push('/onboarding/minutes' as any);
   };
 
   return (
     <OnboardingFrame
       step={1}
-      total={3}
+      total={4}
       title={t('onboarding.aboutTitle')}
       subtitle={t('onboarding.aboutSubtitle')}
       cta={t('common.next')}

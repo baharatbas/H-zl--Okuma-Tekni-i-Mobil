@@ -77,3 +77,14 @@ describe('hafıza görevi', () => {
     expect(scoreMemory(options, [])).toBe(4);
   });
 });
+
+describe('günlük süreye göre antrenman', () => {
+  it.each([[5, 2], [10, 5], [15, 7], [20, 9]])('%i dk → %i görev', (minutes, count) => {
+    const plan = buildDailyPlan({ ...input, minutes });
+    expect(plan).toHaveLength(count);
+    expect(plan.map((p) => p.position)).toEqual([...Array(count).keys()]);
+    expect(plan.some((p) => p.kind === 'comprehension')).toBe(true);
+    const exercises = plan.filter((p) => p.kind === 'attention' || p.kind === 'recognition').map((p) => p.ref);
+    expect(new Set(exercises).size).toBe(exercises.length);
+  });
+});

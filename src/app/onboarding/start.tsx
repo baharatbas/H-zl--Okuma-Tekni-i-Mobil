@@ -1,26 +1,28 @@
 import React from 'react';
 import { router } from 'expo-router';
+import { View } from 'react-native';
 import { OnboardingFrame, NumberedRow } from '../../components/Onboarding';
 import { Card, Text_ } from '../../components/ui';
-import { spacing } from '../../theme';
-import { useAppStore } from '../../store/appStore';
+import { radius, spacing, useTheme } from '../../theme';
 import { t } from '../../i18n';
 
-/** İlk açılış 3/3: seviye testine hazırlık. Bitince bir daha gösterilmez. */
+/** İlk açılış 3/4: başlangıç testine hazırlık. Test bitmeden seviye ve performans kaydedilmez. */
 export default function StartScreen() {
-  const updateSettings = useAppStore((s) => s.updateSettings);
-  const finish = () => {
-    updateSettings({ onboardingDone: true });
-    router.replace('/level-test');
-  };
+  const { colors } = useTheme();
   return (
     <OnboardingFrame
       step={3}
-      total={3}
+      total={4}
       title={t('onboarding.startTitle')}
       subtitle={t('onboarding.startSubtitle')}
       cta={t('onboarding.startCta')}
-      onCta={finish}
+      onCta={() => router.push('/level-test?from=onboarding' as any)}
+      footer={
+        <View style={{ padding: spacing.lg, borderRadius: radius.lg, backgroundColor: colors.primarySoft, gap: spacing.xs }}>
+          <Text_ variant="label" style={{ color: colors.primary }}>{t('onboarding.honestTitle')}</Text_>
+          <Text_ variant="caption">{t('onboarding.honestBody')}</Text_>
+        </View>
+      }
     >
       <Card style={{ gap: spacing.lg }}>
         <NumberedRow n={1} text={t('onboarding.startStep1')} />

@@ -22,6 +22,9 @@ export interface DailyTask {
 export const ATTENTION: ExerciseKey[] = SEGMENTS.self.attention;
 export const RECOGNITION: ExerciseKey[] = SEGMENTS.self.recognition;
 
+/** Seçilebilen günlük çalışma süreleri (dk). */
+export const DAILY_MINUTES = [5, 10, 15, 20] as const;
+
 export const XP: Record<DailyKind, number> = { attention: 20, recognition: 20, fluency: 30, comprehension: 30, memory: 20 };
 
 export interface DailyInput {
@@ -38,6 +41,8 @@ export interface DailyInput {
   previousRefs: string[];
   /** Kullanıcı grubu; verilmezse genel. */
   segment?: Segment;
+  /** Günlük süre; verilmezse 10 dk. */
+  minutes?: number;
 }
 
 /** Son iki puana göre zorluk: başarılıysa bir artar, zorlanıyorsa bir azalır. */
@@ -91,5 +96,27 @@ export function buildDailyPlan(input: DailyInput): DailyTask[] {
     { kind: 'comprehension', ref: test.key, difficulty: base, minutes: Math.ceil(test.words / wpm) + 2 },
     { kind: 'memory', ref: test.key, difficulty: base, minutes: 2 },
   ];
-  return tasks.map((task, position) => ({ ...task, position, xp: XP[task.kind] }));
+  // Süreye göre görev sayısı: 5 dk → 2, 10 → 5, 15 → 7, 20 → 9.
+  const target = input.minutes ?? 10;
+  let chosen = tasks;
+  if (target <= 5) chosen = [tasks[0], tasks[3]];
+  else if (target > 10) {
+    const used = (extra: string[]) => ({ ...input, previousRefs: [...input.previousRefs, attention, recognition, ...extra] });
+    const attention2 = pickExercise(rng, group.attention, used([]));
+    const recognition2 = pickExercise(rng, group.recognition, used([attention2]));
+    const more: typeof tasks = [
+      { kind: 'attention', ref: attention2, difficulty: adaptDifficulty(input.history, attention2, input.level), minutes: 2 },
+      { kind: 'recognition', ref: recognition2, difficulty: adaptDifficulty(input.history, recognition2, input.level), minutes: 2 },
+    ];
+    if (target > 15) {
+      const fluency2 = pickText(rng, input, [...input.previousRefs, fluency.key, test.key]);
+      const attention3 = pickExercise(rng, group.attention, used([attention2, recognition2]));
+      more.push(
+        { kind: 'fluency', ref: fluency2.key, difficulty: base, minutes: Math.ceil(fluency2.words / wpm) + 1 },
+        { kind: 'attention', ref: attention3, difficulty: adaptDifficulty(input.history, attention3, input.level), minutes: 2 },
+      );
+    }
+    chosen = [...tasks, ...more];
+  }
+  return chosen.map((task, position) => ({ ...task, position, xp: XP[task.kind] }));
 }
