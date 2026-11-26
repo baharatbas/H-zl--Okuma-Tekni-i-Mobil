@@ -82,14 +82,14 @@ export function createTextRepository(db: SqlDb): TextRepository {
   return {
     list(source) {
       const rows = db.getAllSync<any>(
-        `SELECT ${TEXT_COLUMNS} FROM library_texts ${source ? 'WHERE source = ?' : ''} ORDER BY source DESC, created_at ASC`,
+        `SELECT ${TEXT_COLUMNS} FROM library_texts WHERE deleted_at IS NULL ${source ? 'AND source = ?' : ''} ORDER BY source DESC, created_at ASC`,
         source ? [source] : [],
       );
       return rows.map(mapText);
     },
 
     get(id) {
-      const row = db.getFirstSync<any>(`SELECT ${TEXT_COLUMNS} FROM library_texts WHERE id = ?`, [id]);
+      const row = db.getFirstSync<any>(`SELECT ${TEXT_COLUMNS} FROM library_texts WHERE id = ? AND deleted_at IS NULL`, [id]);
       return row ? mapText(row) : null;
     },
 
@@ -116,7 +116,8 @@ export function createTextRepository(db: SqlDb): TextRepository {
 
     deleteUser(id) {
       // Yerleşik metinler silinemez; yalnızca kullanıcı metinleri.
-      db.runSync("DELETE FROM library_texts WHERE id = ? AND source = 'user'", [id]);
+      // Metin gizlenir; okuma ve test geçmişi (grafikler) korunur.
+      db.runSync("UPDATE library_texts SET deleted_at = ? WHERE id = ? AND source = 'user'", [new Date().toISOString(), id]);
     },
 
     getTest(textId, type) {
@@ -147,12 +148,12 @@ export function createTextRepository(db: SqlDb): TextRepository {
     createCustomTest(textId, questions) {
       let testId = 0;
       db.withTransactionSync(() => {
-        db.runSync("DELETE FROM tests WHERE text_id = ? AND type = 'custom'", [textId]);
-        const res = db.runSync("INSERT INTO tests (text_id, type, created_at) VALUES (?, 'custom', ?)", [
-          textId,
-          new Date().toISOString(),
-        ]);
-        testId = res.lastInsertRowId;
+        // Test satırı korunur (sonuç geçmişi ona bağlı); yalnızca sorular yenilenir.
+        const existing = db.getFirstSync<{ id: number }>("SELECT id FROM tests WHERE text_id = ? AND type = 'custom' ORDER BY id LIMIT 1", [textId]);
+        testId =
+          existing?.id ??
+          db.runSync("INSERT INTO tests (text_id, type, created_at) VALUES (?, 'custom', ?)", [textId, new Date().toISOString()]).lastInsertRowId;
+        db.runSync('DELETE FROM test_questions WHERE test_id = ?', [testId]);
         questions.forEach((q, i) => {
           db.runSync(
             'INSERT INTO test_questions (test_id, position, question, options_json, correct_index) VALUES (?, ?, ?, ?, ?)',
@@ -164,7 +165,7 @@ export function createTextRepository(db: SqlDb): TextRepository {
     },
 
     clearCustomTests(textId) {
-      db.runSync("DELETE FROM tests WHERE text_id = ? AND type = 'custom'", [textId]);
+      db.runSync("DELETE FROM test_questions WHERE test_id IN (SELECT id FROM tests WHERE text_id = ? AND type = 'custom')", [textId]);
     },
 
     recordTestResult(testId, outcome, durationMs, startedAt = new Date().toISOString()) {

@@ -62,7 +62,6 @@ export default function TodayScreen() {
     const goal = repos.progress.getDailyGoal(today, targetMinutes);
     const series = repos.progress.getPerformanceSeries(60);
     const last = series[series.length - 1];
-    const lastTest = [...series].reverse().find((p) => p.comprehension !== null);
     const attempts = repos.paragraphs.list();
     setData({
       course,
@@ -72,7 +71,7 @@ export default function TodayScreen() {
       streak: repos.progress.getStreak(today).current,
       week: repos.progress.getRecentMinutes(today, 7),
       lastWpm: last ? Math.round(last.wpm) : null,
-      lastComprehension: lastTest?.comprehension ?? null,
+      lastComprehension: last?.comprehension ?? null,
       exercises: repos.progress.getSummary().exerciseSessions,
       paragraph: stats(attempts),
       weak: weakestType(attempts),

@@ -69,6 +69,7 @@ export default function RootLayout() {
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="level-test" options={{ title: t('levelTest.title'), presentation: 'modal' }} />
+        <Stack.Screen name="profile" options={{ title: t('profile.title'), presentation: 'modal' }} />
         <Stack.Screen name="settings" options={{ title: t('settings.title') }} />
         <Stack.Screen name="exercise/[key]" options={{ title: t('exercises.title') }} />
         <Stack.Screen name="reader/[id]" options={{ title: t('reader.title') }} />

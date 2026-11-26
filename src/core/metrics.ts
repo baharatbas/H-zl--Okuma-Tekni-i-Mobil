@@ -36,3 +36,7 @@ export function effectiveWpm(wpm: number, comprehension: number): number {
 export function accuracy(correct: number, attempts: number): number {
   return comprehensionRate(correct, attempts);
 }
+
+/** Grafiğe alınacak okuma hızı sınırları (kelime/dk). Dışındakiler yanlış ölçüm sayılır. */
+export const MIN_PLAUSIBLE_WPM = 20;
+export const MAX_PLAUSIBLE_WPM = 1200;

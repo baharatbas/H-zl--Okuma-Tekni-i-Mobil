@@ -10,7 +10,7 @@ export function recordActivity(durationMs: number) {
   const minutes = Math.max(0, durationMs / 60_000);
   return repositories().progress.addActivity(
     localDateString(),
-    Math.round(minutes * 10) / 10,
+    minutes,
     getSettings().dailyGoalMinutes,
   );
 }

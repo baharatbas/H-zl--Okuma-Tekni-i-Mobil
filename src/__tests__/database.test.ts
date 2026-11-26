@@ -31,8 +31,8 @@ function setup() {
 describe('migrasyonlar', () => {
   it('şemayı en son sürüme getirir ve tekrar çalıştırıldığında hiçbir şey uygulamaz', () => {
     const db = openMemoryDb();
-    expect(migrate(db)).toBe(2);
-    expect(currentSchemaVersion(db)).toBe(2);
+    expect(migrate(db)).toBe(3);
+    expect(currentSchemaVersion(db)).toBe(3);
     expect(migrate(db)).toBe(0);
   });
 
@@ -145,7 +145,7 @@ describe('metinler', () => {
     texts.recordReadingSession(level.id, outcome.wpm, 60_000, level.wordCount, 'chunk');
 
     const series = progress.getPerformanceSeries();
-    expect(series.length).toBe(2);
+    expect(series.length).toBe(1); // grafik yalnızca ölçülen testlerden oluşur
     expect(progress.getSummary().testsTaken).toBe(1);
     expect(progress.getSummary().wordsRead).toBeGreaterThan(0);
   });
@@ -191,5 +191,42 @@ describe('sınav yolu', () => {
     repo.record({ questionId: 'main-2', type: 'main', correct: true, durationMs: 30000 });
     expect(repo.list().map((a) => a.questionId)).toEqual(['main-1', 'main-2']);
     expect(repo.list()[1].correct).toBe(true);
+  });
+});
+
+describe('kalıcılık ve doğru grafik', () => {
+  const outcome = (wpm: number) => ({ wordCount: 100, wpm, correctCount: 2, totalCount: 3, comprehension: 2 / 3 });
+
+  it('metin düzenlense ya da silinse de test geçmişi korunur', () => {
+    const { texts, progress } = setup();
+    const id = texts.createUser('Benim', 'bir iki üç');
+    const q = [{ question: 'Soru?', options: ['a', 'b'], correctIndex: 0 }];
+    const testId = texts.createCustomTest(id, q);
+    texts.recordTestResult(testId, outcome(200), 30000);
+    expect(texts.createCustomTest(id, q)).toBe(testId);
+    texts.clearCustomTests(id);
+    expect(texts.getTest(id, 'custom')).toBeNull();
+    texts.deleteUser(id);
+    expect(texts.get(id)).toBeNull();
+    expect(texts.list('user')).toHaveLength(0);
+    expect(progress.getPerformanceSeries()).toHaveLength(1);
+  });
+
+  it('gerçekçi olmayan hızlar grafiğe girmez, sıralama eskiden yeniye', () => {
+    const { texts, progress } = setup();
+    const test = texts.getTest(texts.getByKey('builtin-sea')!.id)!;
+    texts.recordTestResult(test.id, outcome(5000), 1000, '2026-11-01T10:00:00.000Z');
+    texts.recordTestResult(test.id, outcome(240), 25000, '2026-11-03T10:00:00.000Z');
+    texts.recordTestResult(test.id, outcome(180), 33000, '2026-11-02T10:00:00.000Z');
+    expect(progress.getPerformanceSeries().map((p) => p.wpm)).toEqual([180, 240]);
+  });
+
+  it('profil fotoğrafı veritabanında saklanır ve silinebilir', () => {
+    const { profile } = setup();
+    expect(profile.getPhoto()).toBeNull();
+    profile.setPhoto({ mime: 'image/jpeg', base64: 'AAAA' });
+    expect(profile.getPhoto()).toBe('data:image/jpeg;base64,AAAA');
+    profile.setPhoto(null);
+    expect(profile.getPhoto()).toBeNull();
   });
 });

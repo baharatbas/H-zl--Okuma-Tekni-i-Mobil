@@ -16,7 +16,7 @@ export interface ReadingTestResult {
 /**
  * Zamanlı okuma testi: metin okunur (süre ölçülür), sonra sorular cevaplanır.
  * Seviye testinde ve metin testlerinde ortak kullanılır.
- * Okuma süresi, bileşen açıldığı andan "Okumayı bitirdim" butonuna basılana kadar ölçülür.
+ * Okuma süresi, bileşen açıldığı andan "Okumayı bitirdim" butonuna basılana kadar ölçülür (sorular hariç).
  */
 export function ReadingTest({
   body,
@@ -37,14 +37,18 @@ export function ReadingTest({
     startRef.current = { at: Date.now(), iso: new Date().toISOString() };
   }, []);
 
+  const readingMsRef = useRef(0);
+
   const complete = (answers: (number | null)[]) => {
-    const durationMs = Date.now() - startRef.current!.at;
+    const durationMs = readingMsRef.current;
     const pairs: QuestionAnswer[] = questions.map((q, i) => ({ correctIndex: q.correctIndex, selectedIndex: answers[i] }));
     const outcome = scoreTest(body, durationMs, pairs);
     onFinish({ outcome, durationMs, startedAt: startRef.current!.iso });
   };
 
   const finishReading = () => {
+    // Süre burada durur; soruları cevaplama süresi okuma hızına katılmaz.
+    readingMsRef.current = Date.now() - startRef.current!.at;
     // Soru yoksa test hemen tamamlanır; okuma süresi yine de ölçülür.
     if (questions.length === 0) complete([]);
     else setPhase('questions');

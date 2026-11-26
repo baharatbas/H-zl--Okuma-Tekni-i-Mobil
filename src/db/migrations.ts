@@ -140,6 +140,19 @@ export const MIGRATIONS: Migration[] = [
       'CREATE INDEX IF NOT EXISTS idx_paragraph_attempts_created ON paragraph_attempts(created_at)',
     ],
   },
+  {
+    version: 3,
+    name: 'keep_history_and_profile_photo',
+    statements: [
+      'ALTER TABLE library_texts ADD COLUMN deleted_at TEXT',
+      `CREATE TABLE IF NOT EXISTS profile_photo (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        mime TEXT NOT NULL,
+        data TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )`,
+    ],
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

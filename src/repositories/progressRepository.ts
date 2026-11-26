@@ -1,4 +1,5 @@
 import type { SqlDb } from '../db/types';
+import { MAX_PLAUSIBLE_WPM, MIN_PLAUSIBLE_WPM } from '../core/metrics';
 import { EMPTY_STREAK, StreakState, registerActivity, effectiveStreak, goalProgress, shiftDate } from '../core/streak';
 
 export interface DailyGoalRecord {
@@ -11,8 +12,7 @@ export interface DailyGoalRecord {
 export interface PerformancePoint {
   at: string;
   wpm: number;
-  /** Yalnızca testlerde anlama oranı vardır; okuma oturumlarında null. */
-  comprehension: number | null;
+  comprehension: number;
 }
 
 export interface ProgressSummary {
@@ -114,14 +114,13 @@ export function createProgressRepository(db: SqlDb): ProgressRepository {
     },
 
     getPerformanceSeries(limit = 60) {
-      const rows = db.getAllSync<{ at: string; wpm: number; comprehension: number | null }>(
+      // Yalnızca testler: Hızlı Oku'da metin ayarlanan hızda aktığı için orada kullanıcının hızı ölçülmez.
+      const rows = db.getAllSync<{ at: string; wpm: number; comprehension: number }>(
         `SELECT started_at AS at, wpm, comprehension_rate AS comprehension FROM test_results
-         UNION ALL
-         SELECT started_at AS at, wpm, NULL AS comprehension FROM reading_sessions
-         ORDER BY at DESC LIMIT ?`,
-        [limit],
+         WHERE wpm BETWEEN ? AND ? ORDER BY started_at DESC, id DESC LIMIT ?`,
+        [MIN_PLAUSIBLE_WPM, MAX_PLAUSIBLE_WPM, limit],
       );
-      return rows.reverse().map((r) => ({ at: r.at, wpm: r.wpm, comprehension: r.comprehension }));
+      return rows.reverse();
     },
 
     getSummary() {

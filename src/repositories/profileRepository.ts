@@ -16,10 +16,26 @@ export interface ProfileRepository {
   setLevel(level: Level): void;
   setMode(mode: LearningMode): void;
   saveSettings(patch: Partial<AppSettings>): AppSettings;
+  /** Fotoğraf `data:` adresi olarak döner; yoksa null. */
+  getPhoto(): string | null;
+  setPhoto(photo: { mime: string; base64: string } | null): void;
 }
 
 export function createProfileRepository(db: SqlDb): ProfileRepository {
   return {
+    getPhoto() {
+      const row = db.getFirstSync<{ mime: string; data: string }>('SELECT mime, data FROM profile_photo WHERE id = 1');
+      return row ? `data:${row.mime};base64,${row.data}` : null;
+    },
+
+    setPhoto(photo) {
+      if (!photo) {
+        db.runSync('DELETE FROM profile_photo WHERE id = 1');
+        return;
+      }
+      db.runSync('INSERT OR REPLACE INTO profile_photo (id, mime, data, updated_at) VALUES (1, ?, ?, ?)', [photo.mime, photo.base64, new Date().toISOString()]);
+    },
+
     ensure() {
       db.runSync(
         `INSERT OR IGNORE INTO user_profile (id, level, created_at, mode, settings_json)

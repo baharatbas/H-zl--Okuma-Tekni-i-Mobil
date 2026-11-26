@@ -15,6 +15,7 @@ import { localDateString } from '../../core/streak';
 import { TypeList } from '../../components/ParagraphHub';
 import { Attempt, stats } from '../../core/exam/practice';
 import { useTrack } from '../../hooks/useTrack';
+import { ProfileCard } from '../../components/ProfileCard';
 
 interface ProgressData {
   summary: ProgressSummary;
@@ -22,6 +23,8 @@ interface ProgressData {
   recent: ExerciseSessionRecord[];
   week: { date: string; minutes: number }[];
   attempts: Attempt[];
+  streak: number;
+  bestStreak: number;
 }
 
 type Metric = 'speed' | 'comprehension';
@@ -46,6 +49,8 @@ export default function ProgressScreen() {
         recent: repos.exercises.listSessions(undefined, 5),
         week: repos.progress.getRecentMinutes(localDateString(), 7),
         attempts: repos.paragraphs.list(),
+        streak: repos.progress.getStreak(localDateString()).current,
+        bestStreak: repos.progress.getStreak(localDateString()).state.bestStreak,
       });
     }, []),
   );
@@ -53,9 +58,7 @@ export default function ProgressScreen() {
   if (!data) return <View style={{ flex: 1, backgroundColor: colors.background }} />;
 
   const speedPoints = data.series.map((p) => ({ value: Math.round(p.wpm), label: shortDate(p.at) }));
-  const compPoints = data.series.flatMap((p) =>
-    p.comprehension === null ? [] : [{ value: Math.round(p.comprehension * 100), label: shortDate(p.at) }],
-  );
+  const compPoints = data.series.map((p) => ({ value: Math.round(p.comprehension * 100), label: shortDate(p.at) }));
   const speeds = speedPoints.map((p) => p.value);
   const comps = compPoints.map((p) => p.value);
   const points = metric === 'speed' ? speedPoints : compPoints;
@@ -88,19 +91,11 @@ export default function ProgressScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background, paddingTop: insets.top }}>
       <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl, paddingBottom: spacing.xl }}>
-        <Text_ variant="title" accessibilityRole="header">{t('progress.title')}</Text_>
+        <ProfileCard streak={data.streak} bestStreak={data.bestStreak} />
 
-        {isExam ? (
-        <View style={{ gap: spacing.sm }}>
-          <Text_ variant="heading">{t('exam.progressTitle')}</Text_>
-          <Text_ variant="caption" muted>
-            {t('exam.progressSummary', { total: stats(data.attempts).total, correct: stats(data.attempts).correct, sec: stats(data.attempts).avgSec ?? 0, target: exam.targetSec })}
-          </Text_>
-          <TypeList attempts={data.attempts} />
-        </View>
-      ) : null}
+      <Text_ variant="title" accessibilityRole="header">{t('progress.title')}</Text_>
 
-      {/* Performans: sekme, büyük değer, özet ve grafik tek kartta */}
+        {/* Performans: sekme, büyük değer, özet ve grafik tek kartta */}
         <Card style={{ gap: spacing.lg }}>
           <View style={{ flexDirection: 'row', backgroundColor: colors.surfaceAlt, borderRadius: radius.md, padding: 3 }}>
             {(['speed', 'comprehension'] as const).map((m) => {
@@ -168,7 +163,19 @@ export default function ProgressScreen() {
           )}
         </Card>
 
-        {/* Haftalık çalışma süresi */}
+        <Text_ variant="caption" muted style={{ textAlign: 'center', marginTop: -spacing.md }}>{t('progress.source')}</Text_>
+
+      {isExam ? (
+        <View style={{ gap: spacing.sm }}>
+          <Text_ variant="heading">{t('exam.progressTitle')}</Text_>
+          <Text_ variant="caption" muted>
+            {t('exam.progressSummary', { total: stats(data.attempts).total, correct: stats(data.attempts).correct, sec: stats(data.attempts).avgSec ?? 0, target: exam.targetSec })}
+          </Text_>
+          <TypeList attempts={data.attempts} />
+        </View>
+      ) : null}
+
+      {/* Haftalık çalışma süresi */}
         <View style={{ gap: spacing.sm }}>
           <Text_ variant="heading">{t('progress.weekTitle')}</Text_>
           <Card style={{ gap: spacing.lg }}>

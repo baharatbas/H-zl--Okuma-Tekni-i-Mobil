@@ -3,6 +3,18 @@
  * src/i18n/index.ts içindeki `locales` tablosuna eklenir.
  */
 export const tr = {
+  profile: {
+    title: 'Profilim',
+    edit: 'Profili düzenle',
+    noName: 'Adını ekle',
+    name: 'Adın',
+    addPhoto: 'Fotoğraf ekle',
+    changePhoto: 'Fotoğrafı değiştir',
+    removePhoto: 'Fotoğrafı kaldır',
+    privacy: 'Adın ve fotoğrafın yalnızca bu cihazda saklanır.',
+    photoError: 'Fotoğraf işlenemedi. Lütfen tekrar dene.',
+    bestStreak: 'En iyi seri',
+  },
   schulte: {
     header: 'Schulte Tablosu · Seviye {level}',
     pause: 'Duraklat',
@@ -374,7 +386,7 @@ export const tr = {
     editText: 'Metni düzenle',
     deleteText: 'Metni sil',
     deleteTitle: 'Metin silinsin mi?',
-    deleteMessage: 'Bu metin ve ona bağlı testler silinecek. Bu işlem geri alınamaz.',
+    deleteMessage: 'Bu metin kütüphanenden kaldırılacak. Okuma ve test geçmişin korunur.',
     noTest: 'Bu metin için henüz soru yok. Düzenleyerek soru ekleyebilirsin.',
     builtinNote: 'Hazır metinler düzenlenemez ve silinemez.',
     form: {
@@ -416,10 +428,11 @@ export const tr = {
     average: 'Ortalama',
     best: 'En iyi',
     measurements: 'Ölçüm',
-    oneMore: 'Gelişim çizgisi için bir okuma daha yap.',
+    oneMore: 'Gelişim çizgisi için bir test daha çöz.',
+    source: 'Grafik, testlerde ölçülen okuma süren ve cevaplarından hesaplanır.',
     chartA11y: 'Grafik: {count} ölçüm, son değer {last}',
-    empty: 'Okuma ve test yaptıkça grafik burada görünecek.',
-    emptyCta: 'Bir metin oku',
+    empty: 'Test çözdükçe gelişim grafiğin burada görünecek.',
+    emptyCta: 'Bir test çöz',
     weekTitle: 'Son 7 gün',
     weekSummary: '{days} günde toplam {minutes} dk çalıştın.',
     totalsTitle: 'Toplamlar',

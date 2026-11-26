@@ -14,6 +14,9 @@ interface AppState {
   level: Level | null;
   mode: LearningMode;
   settings: AppSettings;
+  /** Profil fotoğrafı (data adresi); veritabanından okunur. */
+  photo: string | null;
+  setPhoto: (photo: { mime: string; base64: string } | null) => void;
   hydrate: () => void;
   updateSettings: (patch: Partial<AppSettings>) => void;
   setLevel: (level: Level) => void;
@@ -26,6 +29,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   level: null,
   mode: 'smart',
   settings: { ...DEFAULT_SETTINGS },
+  photo: null,
+
+  setPhoto(photo) {
+    const profile = repositories().profile;
+    profile.setPhoto(photo);
+    set({ photo: profile.getPhoto() });
+  },
 
   hydrate() {
     try {
@@ -42,6 +52,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         level: profile.level,
         mode: profile.mode,
         settings: profile.settings,
+        photo: repos.profile.getPhoto(),
       });
     } catch (e) {
       set({ ready: true, error: e instanceof Error ? e.message : String(e) });
