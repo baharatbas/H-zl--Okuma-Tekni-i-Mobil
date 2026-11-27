@@ -381,3 +381,18 @@ describe('64 günlük paragraf seti', () => {
     expect(again.every((id) => first.includes(id))).toBe(true);
   });
 });
+
+describe('çalışan kursu 20 ders', () => {
+  it('20 üniteden oluşur ve eski 6 ünitelik kurs ilerleme korunarak uzar', () => {
+    const { db, course } = setup();
+    createProfileRepository(db).saveSettings({ purpose: 'work' });
+    const full = course.start('beginner');
+    expect(new Set(full.lessons.map((l) => l.unit)).size).toBe(20);
+    expect(new Set(full.lessons.filter((l) => l.type === 'test').map((l) => l.contentRef)).size).toBe(20);
+    course.completeLesson(full.id, 0);
+    db.runSync('DELETE FROM course_lessons WHERE course_id = ? AND unit > 6', [full.id]);
+    const grown = course.getActive()!;
+    expect(grown.lessons).toHaveLength(full.lessons.length);
+    expect(grown.lessons[0].isCompleted).toBe(true);
+  });
+});

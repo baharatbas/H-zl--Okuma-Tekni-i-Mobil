@@ -47,7 +47,7 @@ export const SEGMENTS: Record<Segment, SegmentInfo> = {
     recommended: ['scan_answer', 'skim_read', 'main_idea', 'connector'],
     attention: ['scan_search', 'line_scan', 'odd_one', 'stroop', 'schulte'],
     recognition: ['scan_answer', 'main_idea', 'connector', 'sentence_order', 'true_false'],
-    categories: ['science', 'life', 'thought'],
+    categories: ['work', 'science', 'life', 'thought'],
     features: [
       ['Bilgiyi hızlı bul', 'Tarama ve göz gezdirme çalışmaları.'],
       ['Ana noktayı yakala', 'Başlık, bağlaç ve özet çalışmaları.'],

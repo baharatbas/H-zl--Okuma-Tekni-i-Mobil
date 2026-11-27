@@ -1,7 +1,7 @@
 /** Hazır metinlerin konu kategorileri ve arama/filtre yardımcıları. */
 import { LIBRARY_TEXTS } from './library';
 
-export type CategoryKey = 'nature' | 'science' | 'culture' | 'life' | 'thought' | 'mine';
+export type CategoryKey = 'nature' | 'science' | 'culture' | 'life' | 'thought' | 'work' | 'mine';
 
 export const CATEGORIES: Record<CategoryKey, { label: string; icon: string; color: string }> = {
   nature: { label: 'Doğa', icon: 'leaf-outline', color: '#3D8B5A' },
@@ -9,6 +9,7 @@ export const CATEGORIES: Record<CategoryKey, { label: string; icon: string; colo
   culture: { label: 'Kültür', icon: 'color-palette-outline', color: '#B8605A' },
   life: { label: 'Yaşam', icon: 'cafe-outline', color: '#B07A2A' },
   thought: { label: 'Düşünce', icon: 'bulb-outline', color: '#76609E' },
+  work: { label: 'İş belgeleri', icon: 'briefcase-outline', color: '#4A6A8A' },
   mine: { label: 'Metinlerim', icon: 'create-outline', color: '#1F6F78' },
 };
 

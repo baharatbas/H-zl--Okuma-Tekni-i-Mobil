@@ -3,9 +3,10 @@ import { LIFE } from './life';
 import { NATURE } from './nature';
 import { SCIENCE } from './science';
 import { THOUGHT } from './thought';
+import { WORK } from './work';
 import { LibraryEntry, toLibraryTexts } from './types';
 
-/** Kütüphanenin ek metinleri: her kategoriden 10 metin. Kategoriler karışık sıralanır. */
+/** Kütüphanenin ek metinleri: beş konudan onar metin (karışık sıralı) ve iş belgeleri. */
 const groups: LibraryEntry[][] = [
   toLibraryTexts('nature', NATURE),
   toLibraryTexts('science', SCIENCE),
@@ -14,4 +15,4 @@ const groups: LibraryEntry[][] = [
   toLibraryTexts('thought', THOUGHT),
 ];
 
-export const LIBRARY_TEXTS: LibraryEntry[] = groups[0].flatMap((_, i) => groups.map((g) => g[i]));
+export const LIBRARY_TEXTS: LibraryEntry[] = [...groups[0].flatMap((_, i) => groups.map((g) => g[i])), ...toLibraryTexts('work', WORK)];

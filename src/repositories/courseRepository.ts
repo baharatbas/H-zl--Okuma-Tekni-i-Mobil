@@ -102,7 +102,7 @@ export function createCourseRepository(db: SqlDb): CourseRepository {
       [courseId],
     );
     // Yalnızca mevcut adımlar güncel bir planın başıyla birebir aynıysa uzatılır.
-    const steps = [buildCourse(course.level), buildExamCourse(course.level)].find(
+    const steps = [buildCourse(course.level), buildExamCourse(course.level), buildSegmentCourse('work', course.level)].find(
       (plan) => rows.length > 0 && rows.length < plan.length && rows.every((r, i) => r.type === plan[i].type && r.content_ref === plan[i].contentRef),
     );
     if (!steps) return;
