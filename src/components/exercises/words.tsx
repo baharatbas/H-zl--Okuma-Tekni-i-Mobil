@@ -6,7 +6,7 @@ import { Board, Center, Choices, FEEDBACK_MS, GameProps, GameShell, Hint, Verdic
 import { EXERCISES } from '../../core/exercises/registry';
 import type { ExerciseKey } from '../../core/exercises/types';
 import {
-  ChainRound, chainCorrect, ChoiceRound, huntMatch, mazeRounds, realOrFakeRounds, trueFalseRounds, wordChainRounds, missingWordRounds, phraseRounds, sentenceFinishRounds, summarizeGame, typoRounds, wordFindRounds, wordHuntPuzzle, wordMemoryRounds,
+  ChainRound, chainCorrect, ChoiceRound, huntMatch, lineCells, mazeRounds, realOrFakeRounds, trueFalseRounds, wordChainRounds, missingWordRounds, phraseRounds, sentenceFinishRounds, summarizeGame, typoRounds, wordFindRounds, wordHuntPuzzle, wordMemoryRounds,
 } from '../../core/exercises/wordGames';
 import { stroopRounds, mainIdeaRounds, scanAnswerRounds, antonymRounds, categoryOddRounds, connectorRounds } from '../../core/exercises/moreGames';
 import { createRng, Rng } from '../../core/rng';
@@ -221,7 +221,8 @@ export function WordHuntGame({ settings, onFinish, onQuit }: GameProps) {
   const { colors } = useTheme();
   const color = EXERCISES.word_hunt.color;
   const [puzzle] = useState(() => wordHuntPuzzle(settings.difficulty, createRng(newSeed())));
-  const [first, setFirst] = useState<number | null>(null);
+  /** Parmağın basılı olduğu sürece seçili hücreler. */
+  const [path, setPath] = useState<number[]>([]);
   const [found, setFound] = useState<string[]>([]);
   const [left, setLeft] = useState(Math.round(settings.speedMs / 1000));
   const startedAt = useRef(0);
@@ -236,15 +237,21 @@ export function WordHuntGame({ settings, onFinish, onQuit }: GameProps) {
 
   const foundCells = new Set(puzzle.words.filter((w) => found.includes(w.word)).flatMap((w) => w.cells));
 
-  const tap = (cell: number) => {
-    if (over) return;
-    if (first === null) return setFirst(cell);
-    const word = huntMatch(puzzle, first, cell);
-    setFirst(null);
-    if (word && !found.includes(word)) {
-      haptic('success');
-      setFound([...found, word]);
-    } else if (first !== cell) haptic('error');
+  const cellAt = (x: number, y: number, cell: number) => {
+    const clamp = (v: number) => Math.min(puzzle.size - 1, Math.max(0, Math.floor(v / cell)));
+    return clamp(y) * puzzle.size + clamp(x);
+  };
+
+  const release = (end: number) => {
+    const line = path.length > 0 ? lineCells(puzzle.size, path[0], end) : [];
+    if (line.length > 1 && !over) {
+      const word = huntMatch(puzzle, line[0], line[line.length - 1]);
+      if (word && !found.includes(word)) {
+        haptic('success');
+        setFound([...found, word]);
+      } else haptic('error');
+    }
+    setPath([]);
   };
 
   return (
@@ -266,23 +273,39 @@ export function WordHuntGame({ settings, onFinish, onQuit }: GameProps) {
         </>
       }
     >
-      {({ size }) => (
-        <Board size={size}>
-          <Center>
-            <View style={{ width: size - spacing.lg, flexDirection: 'row', flexWrap: 'wrap' }}>
-              {puzzle.grid.map((letter, i) => {
-                const cell = (size - spacing.lg) / puzzle.size;
-                const on = foundCells.has(i);
-                return (
-                  <Pressable key={i} accessibilityRole="button" accessibilityLabel={letter} onPress={() => tap(i)} style={{ width: Math.floor(cell * 100) / 100, height: cell, alignItems: 'center', justifyContent: 'center', borderRadius: radius.sm, backgroundColor: on ? colors.success + '33' : first === i ? color + '44' : 'transparent' }}>
+      {({ size }) => {
+        // Tam sayı hücre: satırlar kaymaz ve parmağın hücresi doğru hesaplanır.
+        const cell = Math.floor((size - spacing.lg) / puzzle.size);
+        return (
+          <Board size={size}>
+            <Center>
+              <View style={{ width: cell * puzzle.size, height: cell * puzzle.size, flexDirection: 'row', flexWrap: 'wrap' }}>
+                {puzzle.grid.map((letter, i) => (
+                  <View key={i} style={{ width: cell, height: cell, alignItems: 'center', justifyContent: 'center', borderRadius: radius.sm, backgroundColor: path.includes(i) ? color + '55' : foundCells.has(i) ? colors.success + '33' : 'transparent' }}>
                     <Text_ variant="heading">{letter}</Text_>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </Center>
-        </Board>
-      )}
+                  </View>
+                ))}
+                {/* Şeffaf katman: dokunuş hep bu görünüme geldiği için koordinatlar ızgaraya göredir. */}
+                <View
+                  accessible
+                  accessibilityLabel={t('games.word_hunt')}
+                  style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                  onStartShouldSetResponder={() => !over}
+                  onMoveShouldSetResponder={() => !over}
+                  onResponderTerminationRequest={() => false}
+                  onResponderGrant={(e) => setPath([cellAt(e.nativeEvent.locationX, e.nativeEvent.locationY, cell)])}
+                  onResponderMove={(e) => {
+                    const end = cellAt(e.nativeEvent.locationX, e.nativeEvent.locationY, cell);
+                    setPath((p) => (p.length === 0 ? [end] : lineCells(puzzle.size, p[0], end)));
+                  }}
+                  onResponderRelease={(e) => release(cellAt(e.nativeEvent.locationX, e.nativeEvent.locationY, cell))}
+                  onResponderTerminate={() => setPath([])}
+                />
+              </View>
+            </Center>
+          </Board>
+        );
+      }}
     </GameShell>
   );
 }

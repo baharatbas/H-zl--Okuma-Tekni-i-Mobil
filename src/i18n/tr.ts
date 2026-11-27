@@ -577,7 +577,7 @@ export const tr = {
     word_memory: 'Kelimeleri aklında tut',
     check: 'Kontrol et ({selected}/{total})',
     memoryScore: '{total} kelimeden {correct} tanesini hatırladın',
-    word_hunt: 'İlk harfe, sonra son harfe dokun',
+    word_hunt: 'İlk harften son harfe parmağını sürükle',
     huntFound: '{found} / {total} kelime',
   },
   measure: {

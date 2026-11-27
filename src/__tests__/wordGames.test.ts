@@ -30,6 +30,16 @@ describe('kelime oyunları', () => {
       expect(games.chainCorrect(r, [])).toBe(false);
     }
   });
+  it('sürükleme sekiz yönde düz çizgi seçer ve ızgaradan taşmaz', () => {
+    expect(games.lineCells(6, 0, 3)).toEqual([0, 1, 2, 3]);
+    expect(games.lineCells(6, 3, 0)).toEqual([3, 2, 1, 0]);
+    expect(games.lineCells(6, 1, 19)).toEqual([1, 7, 13, 19]);
+    expect(games.lineCells(6, 0, 21)).toEqual([0, 7, 14, 21]);
+    // Hafif sapan sürükleme en yakın yöne oturur.
+    expect(games.lineCells(6, 0, 10)).toEqual([0, 1, 2, 3, 4]);
+    expect(games.lineCells(6, 14, 14)).toEqual([14]);
+    expect(games.lineCells(6, 4, 17).every((c) => c >= 0 && c < 36)).toBe(true);
+  });
   it('uydurma sözcükler gerçek listede yok', () => {
     expect(FAKE_WORDS.filter((w) => REAL_WORDS.includes(w))).toEqual([]);
   });

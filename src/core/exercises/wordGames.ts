@@ -151,7 +151,32 @@ export function wordHuntPuzzle(difficulty: number, rng: Rng): HuntPuzzle {
   return { size, grid: filled, words };
 }
 
-/** İlk ve son harfe dokunmayla seçilen sözcük (iki yönde de geçerli); yoksa null. */
+/**
+ * Sürüklenen parmağa en uyan düz çizgi: yatay, dikey ya da çapraz. Başlangıçtan parmağın
+ * bulunduğu hücreye doğru, ızgara içinde kalan hücreleri sırayla döner.
+ */
+export function lineCells(size: number, start: number, end: number): number[] {
+  const row = Math.floor(start / size);
+  const col = start % size;
+  const dRow = Math.floor(end / size) - row;
+  const dCol = (end % size) - col;
+  if (dRow === 0 && dCol === 0) return [start];
+  // Açı sekiz yönden en yakınına yuvarlanır.
+  const angle = Math.round(Math.atan2(dRow, dCol) / (Math.PI / 4)) * (Math.PI / 4);
+  const stepRow = Math.round(Math.sin(angle));
+  const stepCol = Math.round(Math.cos(angle));
+  const length = Math.max(Math.abs(dRow), Math.abs(dCol));
+  const cells: number[] = [];
+  for (let i = 0; i <= length; i++) {
+    const r = row + stepRow * i;
+    const c = col + stepCol * i;
+    if (r < 0 || r >= size || c < 0 || c >= size) break;
+    cells.push(r * size + c);
+  }
+  return cells;
+}
+
+/** İlk ve son harfi verilen sözcük (iki yönde de geçerli); yoksa null. */
 export function huntMatch(puzzle: HuntPuzzle, a: number, b: number): string | null {
   const hit = puzzle.words.find((w) => {
     const first = w.cells[0];

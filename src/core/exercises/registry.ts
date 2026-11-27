@@ -238,7 +238,7 @@ const RAW_EXERCISES = {
     goal: 'Görsel tarama ve dikkat çalışmasıdır.',
     icon: 'search-outline',
     color: '#3D8B5A',
-    howTo: ['Alttaki kelimeleri oku.','Kelimenin ilk harfine, sonra son harfine dokun.','Süre dolmadan hepsini bul.'],
+    howTo: ['Alttaki kelimeleri oku.','İlk harfe basılı tutup son harfe kadar sürükle.','Süre dolmadan hepsini bul.'],
     defaults: { difficulty: 1, durationSec: 60, speedMs: 90000 },
     speedLabel: 'Süre',
     speedRange: [60000,150000],
