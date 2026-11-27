@@ -26,9 +26,11 @@ export interface CourseView {
 
 export interface CourseRepository {
   getActive(): CourseView | null;
-  /** Mevcut kursu siler; seviyeye ve profildeki amaca (genel / sınav) göre yenisini oluşturur. */
+  /** Seçili grubun kursunu siler ve yenisini oluşturur; diğer grupların kursları korunur. */
   start(level: Level): CourseView;
-  /** Kurs silinir (baştan başlatma için ön adım). */
+  /** Seçili grubun kursu varsa onu (ilerlemesiyle) döner, yoksa oluşturur. */
+  ensure(level: Level): CourseView;
+  /** Seçili grubun kursu silinir (baştan başlatma için ön adım). */
   reset(): void;
   completeLesson(courseId: number, orderIndex: number): CourseView;
   /** Egzersiz adımını yalnızca tüm zorluk seviyeleri geçildiyse tamamlar. */
@@ -120,24 +122,33 @@ export function createCourseRepository(db: SqlDb): CourseRepository {
     );
   }
 
+  /** Profilde seçili kullanıcı grubu; her grubun kendi kursu vardır. */
+  const currentSegment = () => {
+    const profile = db.getFirstSync<{ settings_json: string }>('SELECT settings_json FROM user_profile WHERE id = 1');
+    return segmentOf(parseSettings(profile?.settings_json).purpose);
+  };
+
   return {
+    ensure(level) {
+      return this.getActive() ?? this.start(level);
+    },
+
     getActive() {
-      const row = db.getFirstSync<{ id: number }>('SELECT id FROM courses ORDER BY id DESC LIMIT 1');
+      const row = db.getFirstSync<{ id: number }>('SELECT id FROM courses WHERE segment = ? ORDER BY id DESC LIMIT 1', [currentSegment()]);
       if (!row) return null;
       extend(row.id);
       return load(row.id);
     },
 
     start(level) {
-      const profile = db.getFirstSync<{ settings_json: string }>('SELECT settings_json FROM user_profile WHERE id = 1');
-      const segment = segmentOf(parseSettings(profile?.settings_json).purpose);
+      const segment = currentSegment();
       const plan = segment === 'exam' ? buildExamCourse(level) : segment === 'self' ? buildCourse(level) : buildSegmentCourse(segment, level);
       let courseId = 0;
       db.withTransactionSync(() => {
-        db.runSync('DELETE FROM courses');
+        db.runSync('DELETE FROM courses WHERE segment = ?', [segment]);
         const res = db.runSync(
-          'INSERT INTO courses (level, title, created_at, completed_at) VALUES (?, ?, ?, NULL)',
-          [level, segment === 'exam' ? 'Sınav Paragraf Kursu' : segment === 'work' ? 'İş Okuması Kursu' : segment === 'books' ? 'Kitap Okuru Kursu' : TITLES[level], new Date().toISOString()],
+          'INSERT INTO courses (level, title, created_at, completed_at, segment) VALUES (?, ?, ?, NULL, ?)',
+          [level, segment === 'exam' ? 'Sınav Paragraf Kursu' : segment === 'work' ? 'İş Okuması Kursu' : segment === 'books' ? 'Kitap Okuru Kursu' : TITLES[level], new Date().toISOString(), segment],
         );
         courseId = res.lastInsertRowId;
         for (const step of plan) {
@@ -148,7 +159,7 @@ export function createCourseRepository(db: SqlDb): CourseRepository {
     },
 
     reset() {
-      db.runSync('DELETE FROM courses');
+      db.runSync('DELETE FROM courses WHERE segment = ?', [currentSegment()]);
     },
 
     completeExerciseIfPassed(courseId, orderIndex) {

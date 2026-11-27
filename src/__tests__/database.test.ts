@@ -32,8 +32,8 @@ function setup() {
 describe('migrasyonlar', () => {
   it('şemayı en son sürüme getirir ve tekrar çalıştırıldığında hiçbir şey uygulamaz', () => {
     const db = openMemoryDb();
-    expect(migrate(db)).toBe(9);
-    expect(currentSchemaVersion(db)).toBe(9);
+    expect(migrate(db)).toBe(10);
+    expect(currentSchemaVersion(db)).toBe(10);
     expect(migrate(db)).toBe(0);
   });
 
@@ -394,5 +394,37 @@ describe.each(['work', 'books'] as const)('%s kursu 20 ders', (segment) => {
     const grown = course.getActive()!;
     expect(grown.lessons).toHaveLength(full.lessons.length);
     expect(grown.lessons[0].isCompleted).toBe(true);
+  });
+});
+
+describe('grup değişince ilerleme korunur', () => {
+  it('her grubun kursu, adımları ve geçilen seviyeleri ayrı kalır', () => {
+    const { db, course, exercises, progress } = setup();
+    const profile = createProfileRepository(db);
+    profile.saveSettings({ purpose: 'exam' });
+    const student = course.ensure('beginner');
+    const step = student.lessons[0];
+    exercises.recordSession(step.contentRef as any, { score: 90, accuracy: 0.9, avgResponseMs: null, durationMs: 1000 }, { speedMs: 1000, difficulty: 1, courseLessonId: step.id });
+    course.completeLesson(student.id, 0);
+
+    profile.saveSettings({ purpose: 'work' });
+    const worker = course.ensure('beginner');
+    expect(worker.id).not.toBe(student.id);
+    expect(worker.lessons.some((l) => l.isCompleted)).toBe(false);
+    course.completeLesson(worker.id, 0);
+    course.completeLesson(worker.id, 1);
+    expect(progress.getSummary().completedLessons).toBe(2);
+
+    profile.saveSettings({ purpose: 'exam' });
+    const back = course.ensure('beginner');
+    expect(back.id).toBe(student.id);
+    expect(back.lessons[0].isCompleted).toBe(true);
+    expect(back.lessons[0].passedLevels).toEqual([1]);
+    expect(progress.getSummary().completedLessons).toBe(1);
+
+    // Baştan başlatma yalnızca seçili grubu etkiler.
+    course.start('beginner');
+    profile.saveSettings({ purpose: 'work' });
+    expect(course.getActive()!.lessons.filter((l) => l.isCompleted)).toHaveLength(2);
   });
 });

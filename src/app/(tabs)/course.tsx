@@ -14,8 +14,6 @@ import { lessonRoute, lessonStepIcon, lessonTitle } from '../../services/lessons
 import { DIFFICULTY_LEVELS, unitMeta } from '../../core/course';
 import { haptic } from '../../services/haptics';
 import { examRef } from '../../core/exam/course';
-import { isTrackMismatch } from '../../core/segmentCourse';
-import { useTrack } from '../../hooks/useTrack';
 import { TECHNIQUES } from '../../content/exam/techniques';
 import { findTactic } from '../../content/tactics';
 
@@ -36,7 +34,6 @@ const typeLabel = (l: LessonRow) =>
 export default function CourseScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const { segment } = useTrack();
   const level = useAppStore((s) => s.level);
   const [course, setCourse] = useState<CourseView | null>(null);
 
@@ -122,12 +119,6 @@ export default function CourseScreen() {
           )}
         </View>
 
-        {isTrackMismatch(course.lessons, segment) ? (
-          <Card style={{ gap: spacing.md }}>
-            <Text_>{t('exam.mismatch')}</Text_>
-            <Button title={t('exam.switchCourse')} variant="secondary" onPress={confirmRestart} />
-          </Card>
-        ) : null}
 
         {/* Ünite kartları */}
         {units.map(([unit, lessons], unitIndex) => {

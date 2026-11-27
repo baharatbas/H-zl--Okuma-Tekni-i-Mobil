@@ -156,7 +156,7 @@ Her kategoriye eklenen çalışmalar: `diagonal_jump`, `pacer_read`, `column_flo
 
 ## Dört kullanıcı grubu
 
-Öğrenci (`exam`), çalışan (`work`), kitap okuru (`books`) ve genel (`self`). Her grubun kursu, günlük antrenman havuzu, metin konuları, önerilen egzersizleri ve öne çıkan ölçüsü ayrıdır: `src/core/segments.ts`, `src/core/segmentCourse.ts`. Grup değişince kurs yeniden oluşturulur. Çalışan kursu 20 derstir; son 14 dersin metinleri kurgu iş belgeleridir (`src/content/library/work.ts`). Kitap okuru kursu da 20 derstir; son 14 dersin metinleri özgün hikâyelerdir (`src/content/library/story.ts`).
+Öğrenci (`exam`), çalışan (`work`), kitap okuru (`books`) ve genel (`self`). Her grubun kursu, günlük antrenman havuzu, metin konuları, önerilen egzersizleri ve öne çıkan ölçüsü ayrıdır: `src/core/segments.ts`, `src/core/segmentCourse.ts`. Her grubun kursu ayrı saklanır (`courses.segment`, şema 10); grup değiştirmek ilerlemeyi silmez. Çalışan kursu 20 derstir; son 14 dersin metinleri kurgu iş belgeleridir (`src/content/library/work.ts`). Kitap okuru kursu da 20 derstir; son 14 dersin metinleri özgün hikâyelerdir (`src/content/library/story.ts`).
 
 ## İlk açılış
 

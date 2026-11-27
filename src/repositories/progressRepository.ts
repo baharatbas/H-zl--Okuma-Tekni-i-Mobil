@@ -131,7 +131,9 @@ export function createProgressRepository(db: SqlDb): ProgressRepository {
       const exercises = db.getFirstSync<{ n: number }>('SELECT COUNT(*) AS n FROM exercise_sessions');
       const lessons = db.getFirstSync<{ total: number; done: number }>(
         `SELECT COUNT(*) AS total, COALESCE(SUM(is_completed), 0) AS done FROM course_lessons
-         WHERE course_id = (SELECT MAX(id) FROM courses)`,
+         WHERE course_id = (
+           SELECT MAX(id) FROM courses WHERE segment = COALESCE(
+             (SELECT json_extract(settings_json, '$.purpose') FROM user_profile WHERE id = 1), 'self'))`,
       );
       const tests = db.getFirstSync<{ n: number }>('SELECT COUNT(*) AS n FROM test_results');
       return {

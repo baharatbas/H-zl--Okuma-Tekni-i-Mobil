@@ -218,6 +218,20 @@ export const MIGRATIONS: Migration[] = [
        SELECT question_id, MAX(created_at), COUNT(*) FROM paragraph_attempts GROUP BY question_id`,
     ],
   },
+  {
+    version: 10,
+    name: 'course_per_segment',
+    statements: [
+      `ALTER TABLE courses ADD COLUMN segment TEXT NOT NULL DEFAULT 'self'`,
+      // Var olan kursun grubu adımlarından belirlenir.
+      `UPDATE courses SET segment = 'exam' WHERE EXISTS (
+         SELECT 1 FROM course_lessons l WHERE l.course_id = courses.id AND (l.content_ref LIKE 'tech:%' OR l.content_ref LIKE 'para:%'))`,
+      `UPDATE courses SET segment = 'work' WHERE segment = 'self' AND EXISTS (
+         SELECT 1 FROM course_lessons l WHERE l.course_id = courses.id AND l.order_index = 0 AND l.content_ref = 'tactic:preview')`,
+      `UPDATE courses SET segment = 'books' WHERE segment = 'self' AND EXISTS (
+         SELECT 1 FROM course_lessons l WHERE l.course_id = courses.id AND l.order_index = 0 AND l.content_ref = 'tactic:pointer')`,
+    ],
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Text_ } from './ui';
 import { EXAMS, ExamTarget } from '../core/exam/types';
@@ -10,21 +10,17 @@ import { useAppStore } from '../store/appStore';
 import { MIN_TOUCH, radius, spacing, useTheme } from '../theme';
 import { t } from '../i18n';
 
-/** Grubu değiştirir; onaydan sonra yeni kurs ve (başlanmadıysa) yeni günlük antrenman oluşturulur. */
+/**
+ * Grubu değiştirir. Hiçbir ilerleme silinmez: her grubun kursu ayrı saklanır, geri dönünce kaldığı
+ * yerden sürer. Bugünkü antrenman yalnızca hiç görev tamamlanmadıysa yeni gruba göre kurulur.
+ */
 function changeSegment(next: Segment, onChanged?: () => void) {
   const { level, updateSettings } = useAppStore.getState();
-  const apply = () => {
-    updateSettings({ purpose: next });
-    const repos = repositories();
-    if (level) repos.course.start(level);
-    repos.daily.reset(localDateString());
-    onChanged?.();
-  };
-  if (!level) return apply();
-  Alert.alert(t('exam.switchTitle'), t('exam.switchMessage'), [
-    { text: t('common.cancel'), style: 'cancel' },
-    { text: t('exam.switchConfirm'), onPress: apply },
-  ]);
+  updateSettings({ purpose: next });
+  const repos = repositories();
+  if (level) repos.course.ensure(level);
+  repos.daily.reset(localDateString());
+  onChanged?.();
 }
 
 /** Kullanıcı grubu seçimi: iki sütunlu kartlar; öğrenciler ayrıca hedef sınavını seçer. */
