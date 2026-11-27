@@ -28,13 +28,7 @@ export default function ExercisesScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      const map: Partial<Record<ExerciseKey, number>> = {};
-      repositories()
-        .exercises.listSessions(undefined, 500)
-        .forEach((s) => {
-          map[s.key] = Math.max(map[s.key] ?? 0, s.score);
-        });
-      setBest(map);
+      setBest(repositories().exercises.bestScores());
       setAttempts(repositories().paragraphs.list());
     }, []),
   );

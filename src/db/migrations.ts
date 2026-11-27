@@ -232,6 +232,17 @@ export const MIGRATIONS: Migration[] = [
          SELECT 1 FROM course_lessons l WHERE l.course_id = courses.id AND l.order_index = 0 AND l.content_ref = 'tactic:pointer')`,
     ],
   },
+  {
+    version: 11,
+    name: 'indexes_for_scale',
+    statements: [
+      // Son oturumlar ve günlük planın geçmişi zaman sırasıyla okur.
+      'CREATE INDEX IF NOT EXISTS idx_exercise_sessions_started ON exercise_sessions(started_at)',
+      // Kurs adımlarının geçilen seviyeleri tek sorguda okunur.
+      'CREATE INDEX IF NOT EXISTS idx_exercise_sessions_lesson_score ON exercise_sessions(course_lesson_id, score)',
+      'CREATE INDEX IF NOT EXISTS idx_test_results_wpm ON test_results(wpm)',
+    ],
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

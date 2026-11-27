@@ -32,8 +32,8 @@ function setup() {
 describe('migrasyonlar', () => {
   it('şemayı en son sürüme getirir ve tekrar çalıştırıldığında hiçbir şey uygulamaz', () => {
     const db = openMemoryDb();
-    expect(migrate(db)).toBe(10);
-    expect(currentSchemaVersion(db)).toBe(10);
+    expect(migrate(db)).toBe(11);
+    expect(currentSchemaVersion(db)).toBe(11);
     expect(migrate(db)).toBe(0);
   });
 

@@ -21,6 +21,8 @@ export interface ExerciseRepository {
     startedAt?: string,
   ): number;
   listSessions(key?: ExerciseKey, limit?: number): ExerciseSessionRecord[];
+  /** Her egzersizin en yüksek puanı; tüm geçmişi taşımadan tek sorguda. */
+  bestScores(): Partial<Record<ExerciseKey, number>>;
   countSessions(): number;
 }
 
@@ -46,6 +48,13 @@ export function createExerciseRepository(db: SqlDb): ExerciseRepository {
         ],
       );
       return res.lastInsertRowId;
+    },
+
+    bestScores() {
+      const rows = db.getAllSync<{ key: ExerciseKey; best: number }>(
+        'SELECT e.key, MAX(s.score) AS best FROM exercise_sessions s JOIN exercises e ON e.id = s.exercise_id GROUP BY e.key',
+      );
+      return Object.fromEntries(rows.map((r) => [r.key, Math.round(r.best)])) as Partial<Record<ExerciseKey, number>>;
     },
 
     listSessions(key, limit = 100) {

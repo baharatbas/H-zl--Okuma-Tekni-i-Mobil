@@ -68,6 +68,16 @@ export function createCourseRepository(db: SqlDb): CourseRepository {
       [courseId],
     );
     const base = rows.map((r) => ({ orderIndex: r.order_index, isCompleted: r.is_completed === 1, contentRef: r.content_ref }));
+    // Tüm adımların geçilen seviyeleri tek sorguda okunur (adım başına sorgu yok).
+    const passed = new Map<number, number[]>();
+    for (const row of db.getAllSync<{ course_lesson_id: number; difficulty: number }>(
+      `SELECT DISTINCT s.course_lesson_id, s.difficulty FROM exercise_sessions s
+       JOIN course_lessons l ON l.id = s.course_lesson_id
+       WHERE l.course_id = ? AND s.score >= ? ORDER BY s.difficulty`,
+      [courseId, PASS_SCORE],
+    )) {
+      passed.set(row.course_lesson_id, [...(passed.get(row.course_lesson_id) ?? []), row.difficulty]);
+    }
     const lessons: LessonRow[] = rows.map((r) => ({
       id: r.id,
       orderIndex: r.order_index,
@@ -77,12 +87,7 @@ export function createCourseRepository(db: SqlDb): CourseRepository {
       difficulty: r.difficulty,
       isCompleted: r.is_completed === 1,
       unlocked: isStepUnlocked(base, r.order_index),
-      passedLevels: db
-        .getAllSync<{ difficulty: number }>(
-          'SELECT DISTINCT difficulty FROM exercise_sessions WHERE course_lesson_id = ? AND score >= ? ORDER BY difficulty',
-          [r.id, PASS_SCORE],
-        )
-        .map((x) => x.difficulty),
+      passedLevels: passed.get(r.id) ?? [],
     }));
 
     return {
