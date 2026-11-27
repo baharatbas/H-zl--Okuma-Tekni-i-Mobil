@@ -66,7 +66,8 @@ describe('set seçimi ve puanlama', () => {
 describe('sınav kursu', () => {
   it('her tip için egzersiz, teknik ve soru çalışması adımı üretir', () => {
     const steps = buildExamCourse('intermediate');
-    expect(steps).toHaveLength(QUESTION_TYPES.length * 3);
+    expect(steps).toHaveLength(QUESTION_TYPES.length * 3 + 7 * 4);
+    expect(new Set(steps.map((s) => s.unit)).size).toBe(15);
     steps.forEach((s, i) => expect(s.orderIndex).toBe(i));
     expect(EXERCISE_KEYS).toContain(steps[0].contentRef);
     expect(examRef(steps[1].contentRef)).toEqual({ kind: 'tech', type: 'main' });

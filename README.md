@@ -122,7 +122,7 @@ bir işlem içinde çalıştırır.
 
 İlk açılışta (ya da Ayarlar'dan) seçilir. Tasarım aynıdır, içerik değişir.
 
-- **Sınava hazırlık** (LGS, TYT/YKS, KPSS/ALES): 8 paragraf soru tipi. Kursta her tip için okuma egzersizi → teknik dersi → süreli soru.
+- **Sınava hazırlık** (LGS, TYT/YKS, KPSS/ALES): 8 paragraf soru tipi. Kursta her tip için okuma egzersizi → teknik dersi → süreli soru. Ardından 7 sınav hızı dersi gelir (taktik → alıştırma → okuma → test); toplam 15 ders.
 - LGS 4 şıklı, diğerleri 5 şıklı gösterilir.
 - Soru başına süre hedefleri (`src/core/exam/types.ts`) uygulamanın çalışma hedefidir; **resmî sınav süresi değildir**.
 - Sorular ve teknikler `src/content/exam/` içindedir ve özgündür. Yeni soru eklemek için `questions.ts` dosyasına ekleyin; testler şık ve cevap tutarlılığını denetler.

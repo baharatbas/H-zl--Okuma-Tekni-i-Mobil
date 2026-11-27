@@ -93,7 +93,7 @@ export function createCourseRepository(db: SqlDb): CourseRepository {
     };
   }
 
-  /** Eski bir genel kursa sonradan eklenen adımları sona ekler; tamamlananlar korunur. */
+  /** Eski bir genel ya da sınav kursuna sonradan eklenen adımları sona ekler; tamamlananlar korunur. */
   function extend(courseId: number): void {
     const course = db.getFirstSync<{ level: Level }>('SELECT level FROM courses WHERE id = ?', [courseId]);
     if (!course) return;
@@ -101,10 +101,11 @@ export function createCourseRepository(db: SqlDb): CourseRepository {
       'SELECT type, content_ref FROM course_lessons WHERE course_id = ? ORDER BY order_index',
       [courseId],
     );
-    const steps = buildCourse(course.level);
-    // Yalnızca mevcut adımlar güncel planın başıyla birebir aynıysa uzatılır (sınav kursu eşleşmez).
-    const isPrefix = rows.length > 0 && rows.length < steps.length && rows.every((r, i) => r.type === steps[i].type && r.content_ref === steps[i].contentRef);
-    if (!isPrefix) return;
+    // Yalnızca mevcut adımlar güncel bir planın başıyla birebir aynıysa uzatılır.
+    const steps = [buildCourse(course.level), buildExamCourse(course.level)].find(
+      (plan) => rows.length > 0 && rows.length < plan.length && rows.every((r, i) => r.type === plan[i].type && r.content_ref === plan[i].contentRef),
+    );
+    if (!steps) return;
     db.withTransactionSync(() => {
       for (const step of steps.slice(rows.length)) insertStep(courseId, step);
       db.runSync('UPDATE courses SET completed_at = NULL WHERE id = ?', [courseId]);

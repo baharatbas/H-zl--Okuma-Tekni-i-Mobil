@@ -328,3 +328,17 @@ describe('taktik dersi alıştırmasıyla tamamlanır', () => {
     expect(at(2).unlocked).toBe(true);
   });
 });
+
+describe('sınav kursu 15 ders', () => {
+  it('15 üniteden oluşur ve eski 8 ünitelik kurs ilerleme korunarak uzar', () => {
+    const { db, course } = setup();
+    createProfileRepository(db).saveSettings({ purpose: 'exam' });
+    const full = course.start('beginner');
+    expect(new Set(full.lessons.map((l) => l.unit)).size).toBe(15);
+    course.completeLesson(full.id, 0);
+    db.runSync('DELETE FROM course_lessons WHERE course_id = ? AND unit > 8', [full.id]);
+    const grown = course.getActive()!;
+    expect(grown.lessons).toHaveLength(full.lessons.length);
+    expect(grown.lessons[0].isCompleted).toBe(true);
+  });
+});
