@@ -63,7 +63,7 @@ export const SEGMENTS: Record<Segment, SegmentInfo> = {
     recommended: ['pacer_read', 'maze_read', 'phrase_group', 'sentence_finish'],
     attention: ['tracking', 'zigzag_horizontal', 'column_flow', 'diagonal_jump', 'corsi'],
     recognition: ['pacer_read', 'maze_read', 'phrase_group', 'rsvp_repeat', 'sentence_finish', 'missing_word'],
-    categories: ['culture', 'thought', 'nature'],
+    categories: ['story', 'culture', 'thought', 'nature'],
     features: [
       ['Akıcı oku', 'Rehberli satır ve anlam grubu çalışmaları.'],
       ['Alışkanlık kur', 'Her gün kısa bir antrenman ve seri takibi.'],

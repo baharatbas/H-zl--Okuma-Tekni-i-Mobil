@@ -1,10 +1,10 @@
 import { BUILTIN_TEXTS } from '../content/builtinTexts';
 
 describe('hazır metin kütüphanesi', () => {
-  it('84 hazır metin var ve anahtarları benzersiz', () => {
-    expect(BUILTIN_TEXTS).toHaveLength(84);
-    expect(new Set(BUILTIN_TEXTS.map((t) => t.key)).size).toBe(84);
-    expect(new Set(BUILTIN_TEXTS.map((t) => t.title)).size).toBe(84);
+  it('98 hazır metin var ve anahtarları benzersiz', () => {
+    expect(BUILTIN_TEXTS).toHaveLength(98);
+    expect(new Set(BUILTIN_TEXTS.map((t) => t.key)).size).toBe(98);
+    expect(new Set(BUILTIN_TEXTS.map((t) => t.title)).size).toBe(98);
   });
   it('her metnin üç soruluk, geçerli doğru cevaplı testi var', () => {
     for (const text of BUILTIN_TEXTS) {

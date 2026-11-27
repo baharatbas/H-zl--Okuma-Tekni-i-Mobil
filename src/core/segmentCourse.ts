@@ -37,6 +37,21 @@ const UNITS: Record<'work' | 'books', Unit[]> = {
     ['inner-voice', 'maze_read', 'builtin-proverbs'],
     ['recall', 'sentence_order', 'builtin-theatre'],
     ['preview', 'missing_word', 'builtin-slow-reading'],
+    // 7–20: hikâye ve kitap okuma. Sona eklenir; süren kurslar ilerleme kaybetmeden uzar.
+    ['book-choose', 'word_find', 'builtin-story-lantern'],
+    ['book-schedule', 'pacer_read', 'builtin-story-letter'],
+    ['book-characters', 'main_idea', 'builtin-story-garden'],
+    ['book-predict', 'sentence_finish', 'builtin-story-train'],
+    ['book-visualize', 'corsi', 'builtin-story-map'],
+    ['book-emotions', 'antonym', 'builtin-story-baker'],
+    ['book-time', 'sentence_order', 'builtin-story-radio'],
+    ['book-nonfiction', 'skim_read', 'builtin-story-swim'],
+    ['book-narrator', 'stroop', 'builtin-story-violin'],
+    ['book-details', 'odd_one', 'builtin-story-seedbank'],
+    ['book-revise', 'real_or_fake', 'builtin-story-bridge'],
+    ['book-annotate', 'typo_find', 'builtin-story-notebook'],
+    ['book-theme', 'category_odd', 'builtin-story-clock'],
+    ['book-recall', 'word_memory', 'builtin-story-kite'],
   ],
 };
 

@@ -156,7 +156,7 @@ Her kategoriye eklenen çalışmalar: `diagonal_jump`, `pacer_read`, `column_flo
 
 ## Dört kullanıcı grubu
 
-Öğrenci (`exam`), çalışan (`work`), kitap okuru (`books`) ve genel (`self`). Her grubun kursu, günlük antrenman havuzu, metin konuları, önerilen egzersizleri ve öne çıkan ölçüsü ayrıdır: `src/core/segments.ts`, `src/core/segmentCourse.ts`. Grup değişince kurs yeniden oluşturulur. Çalışan kursu 20 derstir; son 14 dersin metinleri kurgu iş belgeleridir (`src/content/library/work.ts`).
+Öğrenci (`exam`), çalışan (`work`), kitap okuru (`books`) ve genel (`self`). Her grubun kursu, günlük antrenman havuzu, metin konuları, önerilen egzersizleri ve öne çıkan ölçüsü ayrıdır: `src/core/segments.ts`, `src/core/segmentCourse.ts`. Grup değişince kurs yeniden oluşturulur. Çalışan kursu 20 derstir; son 14 dersin metinleri kurgu iş belgeleridir (`src/content/library/work.ts`). Kitap okuru kursu da 20 derstir; son 14 dersin metinleri özgün hikâyelerdir (`src/content/library/story.ts`).
 
 ## İlk açılış
 
@@ -169,6 +169,6 @@ Beş sekmenin en üstünde sabit premium bandı görünür (`src/app/(tabs)/_lay
 ## Kalıcı veri
 
 - Tüm kullanıcı verisi cihazdaki SQLite veritabanındadır (`hizlioku.db`): profil, ad, profil fotoğrafı (`profile_photo`), ayarlar, kurs ilerlemesi, test / okuma / egzersiz / paragraf sonuçları, günlük hedef ve seri.
-- Şema sürümü 6. Taktik dersi, alıştırmasının 5 seviyesi geçilince onunla birlikte tamamlanır. Kütüphanede 84 hazır metin vardır (ek metinler `src/content/library/`); liste, metin gövdelerini yüklemeyen tek bir sorguyla gelir. Kullanıcı bir metni sildiğinde metin yalnızca gizlenir (`deleted_at`); geçmiş sonuçlar korunur.
+- Şema sürümü 6. Taktik dersi, alıştırmasının 5 seviyesi geçilince onunla birlikte tamamlanır. Kütüphanede 98 hazır metin vardır (ek metinler `src/content/library/`); liste, metin gövdelerini yüklemeyen tek bir sorguyla gelir. Kullanıcı bir metni sildiğinde metin yalnızca gizlenir (`deleted_at`); geçmiş sonuçlar korunur.
 - Okuma hızı grafiği yalnızca testlerden hesaplanır: kelime sayısı ÷ okuma süresi (sorular hariç). 20–1200 kelime/dk dışındaki ölçümler grafiğe alınmaz.
 - Uygulama silinirse cihazdaki veriler de silinir (sunucu ve yedekleme yoktur).

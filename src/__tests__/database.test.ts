@@ -382,10 +382,10 @@ describe('64 günlük paragraf seti', () => {
   });
 });
 
-describe('çalışan kursu 20 ders', () => {
+describe.each(['work', 'books'] as const)('%s kursu 20 ders', (segment) => {
   it('20 üniteden oluşur ve eski 6 ünitelik kurs ilerleme korunarak uzar', () => {
     const { db, course } = setup();
-    createProfileRepository(db).saveSettings({ purpose: 'work' });
+    createProfileRepository(db).saveSettings({ purpose: segment });
     const full = course.start('beginner');
     expect(new Set(full.lessons.map((l) => l.unit)).size).toBe(20);
     expect(new Set(full.lessons.filter((l) => l.type === 'test').map((l) => l.contentRef)).size).toBe(20);

@@ -10,7 +10,7 @@ const rows = [
 describe('kütüphane kategorileri', () => {
   it('her hazır metnin kendi kategorisi var (varsayılana düşen yok)', () => {
     const counts = new Set(BUILTIN_TEXTS.map((t) => categoryOf({ key: t.key, source: 'builtin' })));
-    expect(counts.size).toBe(6);
+    expect(counts.size).toBe(7);
     expect(categoryOf({ key: null, source: 'user' })).toBe('mine');
   });
   it('arama Türkçe İ ve şapkalı harfleri doğru eşler', () => {

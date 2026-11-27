@@ -18,7 +18,7 @@ const metaFor = (row: Row) =>
 const renderCard = ({ item }: { item: Row }) => <TextCard row={item} />;
 const Separator = () => <View style={{ height: spacing.md }} />;
 
-const FILTERS: (CategoryKey | 'all')[] = ['all', 'nature', 'science', 'culture', 'life', 'thought', 'work', 'mine'];
+const FILTERS: (CategoryKey | 'all')[] = ['all', 'nature', 'science', 'culture', 'life', 'thought', 'work', 'story', 'mine'];
 
 /** Kütüphane: arama, konu filtreleri, günün metni ve kapaklı metin kartları. */
 export default function LibraryScreen() {
