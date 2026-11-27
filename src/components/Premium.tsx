@@ -129,6 +129,29 @@ function PremiumSheet({ visible, onClose }: { visible: boolean; onClose: () => v
               <View style={{ padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.warning + '1A', gap: spacing.xs }}>
                 <Text_ variant="label">{t(os === 'ios' ? 'premium.needAccountIos' : 'premium.needAccountAndroid')}</Text_>
                 <Text_ variant="caption" muted>{t('premium.needAccountSoon')}</Text_>
+
+                <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm }}>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t('login.google')}
+                    onPress={() => Alert.alert(t('login.soonTitle'), t('premium.needAccountSoon'))}
+                    style={({ pressed }) => ({ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs, minHeight: 40, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, opacity: pressed ? 0.8 : 1 })}
+                  >
+                    <Ionicons name="logo-google" size={16} color={colors.text} />
+                    <Text_ variant="caption" style={{ fontWeight: '600' }}>{t('login.google')}</Text_>
+                  </Pressable>
+                {os === 'ios' ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t('login.apple')}
+                    onPress={() => Alert.alert(t('login.soonTitle'), t('premium.needAccountSoon'))}
+                    style={({ pressed }) => ({ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs, minHeight: 40, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, opacity: pressed ? 0.8 : 1 })}
+                  >
+                    <Ionicons name="logo-apple" size={16} color={colors.text} />
+                    <Text_ variant="caption" style={{ fontWeight: '600' }}>{t('login.apple')}</Text_>
+                  </Pressable>
+                ) : null}
+                </View>
               </View>
             ) : null}
             <Button title={t('premium.continue')} disabled={!allowed} onPress={() => Alert.alert(t('premium.soonTitle'), t('premium.soonMessage'))} />
