@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ScrollView, View } from 'react-native';
+import { AppState, ScrollView, View } from 'react-native';
 import { Button, Card, Chip, Text_ } from './ui';
 import { spacing } from '../theme';
 import { t } from '../i18n';
@@ -11,6 +11,8 @@ export interface ReadingTestResult {
   outcome: TestOutcome;
   durationMs: number;
   startedAt: string;
+  /** Okuma sırasında uygulama arka plana geçtiyse true; o süre okumadan düşülür. */
+  interrupted: boolean;
 }
 
 /**
@@ -38,17 +40,35 @@ export function ReadingTest({
   }, []);
 
   const readingMsRef = useRef(0);
+  // Okuma sırasında arka plana geçen süre okuma süresinden düşülür ve ölçüm kesintili işaretlenir.
+  const readingRef = useRef(true);
+  const bgAtRef = useRef<number | null>(null);
+  const pausedMsRef = useRef(0);
+  const interruptedRef = useRef(false);
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (!readingRef.current) return;
+      if (state !== 'active' && bgAtRef.current === null) bgAtRef.current = Date.now();
+      if (state === 'active' && bgAtRef.current !== null) {
+        pausedMsRef.current += Date.now() - bgAtRef.current;
+        bgAtRef.current = null;
+        interruptedRef.current = true;
+      }
+    });
+    return () => sub.remove();
+  }, []);
 
   const complete = (answers: (number | null)[]) => {
     const durationMs = readingMsRef.current;
     const pairs: QuestionAnswer[] = questions.map((q, i) => ({ correctIndex: q.correctIndex, selectedIndex: answers[i] }));
     const outcome = scoreTest(body, durationMs, pairs);
-    onFinish({ outcome, durationMs, startedAt: startRef.current!.iso });
+    onFinish({ outcome, durationMs, startedAt: startRef.current!.iso, interrupted: interruptedRef.current });
   };
 
   const finishReading = () => {
     // Süre burada durur; soruları cevaplama süresi okuma hızına katılmaz.
-    readingMsRef.current = Date.now() - startRef.current!.at;
+    readingRef.current = false;
+    readingMsRef.current = Date.now() - startRef.current!.at - pausedMsRef.current;
     // Soru yoksa test hemen tamamlanır; okuma süresi yine de ölçülür.
     if (questions.length === 0) complete([]);
     else setPhase('questions');

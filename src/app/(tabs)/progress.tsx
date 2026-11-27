@@ -113,7 +113,7 @@ export default function ProgressScreen() {
                     style={{ flex: 1, minHeight: MIN_TOUCH - 8, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: selected ? colors.surface : 'transparent' }}
                   >
                     <Text_ variant="label" style={{ color: selected ? colors.text : colors.textMuted }}>
-                      {m === 'speed' ? t('progress.tabSpeed') : m === 'comprehension' ? t('progress.tabComprehension') : t('measure.effective')}
+                      {m === 'speed' ? t('progress.tabSpeed') : m === 'comprehension' ? t('progress.tabComprehension') : t('measure.effectiveTab')}
                     </Text_>
                   </Pressable>
                 );
@@ -155,7 +155,9 @@ export default function ProgressScreen() {
                   accessibilityLabel={t('progress.chartA11y', { count: points.length, last: format(values[values.length - 1]) })}
                 />
 
-                {points.length < 2 ? (
+                {metric === 'effective' ? <Text_ variant="caption" muted>{t('measure.effectiveNote')}</Text_> : null}
+
+              {points.length < 2 ? (
                   <Text_ variant="caption" muted style={{ textAlign: 'center' }}>{t('progress.oneMore')}</Text_>
                 ) : (
                   <View style={{ flexDirection: 'row', gap: spacing.sm }}>

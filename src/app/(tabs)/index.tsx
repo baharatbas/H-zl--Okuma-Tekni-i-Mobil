@@ -4,6 +4,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Card, Text_ } from '../../components/ui';
+import { Avatar } from '../../components/Avatar';
 import { DailyTraining } from '../../components/DailyTraining';
 import { repositories } from '../../repositories';
 import type { DailyTaskRow } from '../../repositories';
@@ -48,6 +49,7 @@ export default function TodayScreen() {
   const level = useAppStore((s) => s.level);
   const targetMinutes = useAppStore((s) => s.settings.dailyGoalMinutes);
   const displayName = useAppStore((s) => s.settings.displayName);
+  const photo = useAppStore((s) => s.photo);
   const [data, setData] = useState<HomeData | null>(null);
 
   const load = useCallback(() => {
@@ -75,13 +77,23 @@ export default function TodayScreen() {
   const greeting = t(`today.${greetingKey(now.getHours())}`);
   return (
     <View style={{ flex: 1, backgroundColor: colors.background, paddingTop: insets.top }}>
-      <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl, paddingBottom: spacing.xl }} showsVerticalScrollIndicator={false}>
-        {/* Selamlama */}
+      <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingTop: spacing.md, gap: spacing.xl, paddingBottom: spacing.xl }} showsVerticalScrollIndicator={false}>
+        {/* Selamlama ve antrenman birbirine yakın durur. */}
+        <View style={{ gap: spacing.md }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-            <Text_ variant="caption" muted>{now.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' })}</Text_>
-            <Text_ variant="title" accessibilityRole="header">{displayName ? `${greeting}, ${displayName}` : greeting}</Text_>
-          </View>
+          {/* Profil: görsel, ad ve selamlama; dokununca profil açılır. */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${displayName || t('profile.noName')}. ${greeting}. ${t('profile.edit')}`}
+            onPress={() => router.push('/profile')}
+            style={({ pressed }) => ({ flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.md, opacity: pressed ? 0.7 : 1 })}
+          >
+            <Avatar uri={photo} name={displayName} size={48} />
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text_ variant="heading" accessibilityRole="header" numberOfLines={1}>{displayName || t('profile.noName')}</Text_>
+              <Text_ variant="caption" muted numberOfLines={1}>{greeting}</Text_>
+            </View>
+          </Pressable>
           <View accessible accessibilityLabel={`${t('today.streak')}: ${data?.streak ?? 0}`} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing.md, height: 40, borderRadius: radius.pill, backgroundColor: WARM + '1F' }}>
             <Ionicons name="flame" size={18} color={WARM} />
             <Text_ variant="heading">{String(data?.streak ?? 0)}</Text_>
@@ -91,14 +103,14 @@ export default function TodayScreen() {
         {/* Bugünkü antrenman */}
         {data ? (
           <DailyTraining plan={data.plan} totalXp={data.totalXp}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: spacing.sm }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
               {data.week.map((d, i) => {
                 const active = d.minutes > 0;
                 const isToday = i === data.week.length - 1;
                 return (
-                  <View key={d.date} accessible accessibilityLabel={`${weekday(d.date)}: ${active ? t('today.studied') : t('today.notStudied')}`} style={{ alignItems: 'center', gap: 6 }}>
-                    <View style={{ width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? colors.primary : colors.surface, borderWidth: isToday && !active ? 2 : 0, borderColor: colors.primary }}>
-                      {active ? <Ionicons name="checkmark" size={18} color={colors.onPrimary} /> : null}
+                  <View key={d.date} accessible accessibilityLabel={`${weekday(d.date)}: ${active ? t('today.studied') : t('today.notStudied')}`} style={{ alignItems: 'center', gap: 2 }}>
+                    <View style={{ width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? colors.primary : colors.surfaceAlt, borderWidth: isToday && !active ? 2 : 0, borderColor: colors.primary }}>
+                      {active ? <Ionicons name="checkmark" size={14} color={colors.onPrimary} /> : null}
                     </View>
                     <Text_ variant="caption" muted style={{ fontWeight: isToday ? '700' : '400' }}>{weekday(d.date)}</Text_>
                   </View>
@@ -107,6 +119,7 @@ export default function TodayScreen() {
             </View>
           </DailyTraining>
         ) : null}
+        </View>
 
         {isExam ? (
           <View style={{ gap: spacing.md }}>

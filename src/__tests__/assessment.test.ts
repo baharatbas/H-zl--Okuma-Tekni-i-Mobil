@@ -26,7 +26,11 @@ describe('ölçüm kuralları', () => {
   });
   it('şüpheli ölçümleri işaretler', () => {
     expect(measurementFlags({ wpm: 220, comprehension: 1, seenBefore: false })).toEqual([]);
-    expect(measurementFlags({ wpm: 900, comprehension: 0.2, seenBefore: true })).toEqual(['too_fast', 'skipped', 'seen']);
+    expect(measurementFlags({ wpm: 900, comprehension: 0.2, seenBefore: true })).toEqual(['too_fast', 'low_comp', 'seen']);
+    expect(measurementFlags({ wpm: 350, comprehension: 0, seenBefore: false })).toEqual(['skipped']);
+    expect(measurementFlags({ wpm: 350, comprehension: 0.2, seenBefore: false })).toEqual(['low_comp']);
+    expect(measurementFlags({ wpm: 250, comprehension: 0, seenBefore: false })).toEqual([]);
+    expect(measurementFlags({ wpm: 220, comprehension: 1, seenBefore: false, interrupted: true })).toEqual(['interrupted']);
     expect(measurementFlags({ wpm: 20, comprehension: 1, seenBefore: false })).toEqual(['too_slow']);
   });
   it('birden çok metin toplam kelime ve süreyle birleştirilir', () => {

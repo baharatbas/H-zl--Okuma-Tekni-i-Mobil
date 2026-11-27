@@ -43,21 +43,40 @@ export function pickBaseline<T extends { key: string; body: string }>(texts: T[]
   return [...pool.filter((t) => !seen.includes(t.key)), ...pool.filter((t) => seen.includes(t.key))].slice(0, BASELINE_TEXTS);
 }
 
-export type MeasurementFlag = 'too_fast' | 'too_slow' | 'skipped' | 'seen';
+export type MeasurementFlag = 'too_fast' | 'too_slow' | 'skipped' | 'low_comp' | 'seen' | 'interrupted';
 
+/** Ölçüm metni başına soru sayısı; daha az soruluk metin ölçüm havuzuna girmez. */
+export const MEASUREMENT_MIN_QUESTIONS = 5;
+
+/** Bu hızın üstünde hiç soru doğru değilse metin büyük olasılıkla okunmamıştır. */
+export const SKIM_WPM = 300;
+/** Bu hızın üstü ölçüm hatası sayılır; grafiğe girmez. */
 export const FAST_LIMIT_WPM = 600;
+/** Bu hızın altı yalnızca incelemeye alınır; tek başına dışlanmaz (zor metin ya da ara olabilir). */
 export const SLOW_LIMIT_WPM = 40;
 
-/** Grafiğe ve karşılaştırmaya alınmaması gereken ölçümlerin nedenleri. */
-export function measurementFlags(m: { wpm: number; comprehension: number; seenBefore: boolean }): MeasurementFlag[] {
+/** Bu nedenlerden biri varsa ölçüm grafiğe ve karşılaştırmaya alınmaz; geçmişte yine saklanır. */
+export const EXCLUDING_FLAGS: MeasurementFlag[] = ['too_fast', 'skipped', 'seen', 'interrupted'];
+
+/**
+ * Ölçüm kontrolü. Hiçbir ölçüm silinmez; neden işaretlenir.
+ * - Çok hızlı (600+): grafik dışı.
+ * - Yavaş (40-): incelemeye alınır, grafikte kalır.
+ * - Hızlı (300+) ve hiç doğru yok: grafik dışı. Hızlı ve az doğru (%1-39): anlama uyarısı, grafikte kalır.
+ * - Daha önce okunmuş metin ve arka plana geçen okuma: grafik dışı.
+ */
+export function measurementFlags(m: { wpm: number; comprehension: number; seenBefore: boolean; interrupted?: boolean }): MeasurementFlag[] {
   const flags: MeasurementFlag[] = [];
   if (m.wpm > FAST_LIMIT_WPM) flags.push('too_fast');
   if (m.wpm < SLOW_LIMIT_WPM) flags.push('too_slow');
-  // Çok hızlı ve soruların çoğu yanlışsa metin büyük olasılıkla okunmamıştır.
-  if (m.comprehension < 0.4 && m.wpm > 300) flags.push('skipped');
+  if (m.wpm > SKIM_WPM && m.comprehension === 0) flags.push('skipped');
+  else if (m.wpm > SKIM_WPM && m.comprehension < 0.4) flags.push('low_comp');
   if (m.seenBefore) flags.push('seen');
+  if (m.interrupted) flags.push('interrupted');
   return flags;
 }
+
+export const isExcluded = (flags: MeasurementFlag[]) => flags.some((f) => EXCLUDING_FLAGS.includes(f));
 
 /** Birkaç metnin ortak sonucu: toplam kelime / toplam süre ve toplam doğru / toplam soru. */
 export function combineMeasurements(parts: { wordCount: number; durationMs: number; correctCount: number; totalCount: number }[]) {

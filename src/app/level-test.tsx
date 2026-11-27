@@ -6,7 +6,7 @@ import { ReadingTest, ReadingTestResult } from '../components/ReadingTest';
 import { MeasurementSummary } from '../components/MeasurementSummary';
 import { repositories } from '../repositories';
 import { BUILTIN_TEXTS, LEVEL_TEST_KEY } from '../content/builtinTexts';
-import { combineMeasurements, MeasurementFlag, pickBaseline } from '../core/assessment';
+import { combineMeasurements, MEASUREMENT_MIN_QUESTIONS, MeasurementFlag, pickBaseline } from '../core/assessment';
 import { determineLevel, LEVEL_PARAMS, Level } from '../core/levels';
 import { createRng } from '../core/rng';
 import { useAppStore } from '../store/appStore';
@@ -27,7 +27,8 @@ export default function LevelTestScreen() {
   const { from } = useLocalSearchParams<{ from?: string }>();
   const repos = useMemo(() => repositories(), []);
   const [items] = useState(() => {
-    const pool = BUILTIN_TEXTS.filter((x) => x.key !== LEVEL_TEST_KEY);
+    // Yalnızca 5 soruluk ölçüm metinleri: her metinde aynı ölçüt uygulanır.
+    const pool = BUILTIN_TEXTS.filter((x) => x.key !== LEVEL_TEST_KEY && x.questions.length >= MEASUREMENT_MIN_QUESTIONS);
     return pickBaseline(pool, repos.texts.seenKeys(), createRng(newSeed())).flatMap((x) => {
       const text = repos.texts.getByKey(x.key);
       const test = text ? repos.texts.getTest(text.id) : null;
@@ -50,7 +51,7 @@ export default function LevelTestScreen() {
     if (index + 1 < items.length) return setIndex(index + 1);
 
     // Üç metin de bitmeden hiçbir başlangıç ölçümü kaydedilmez.
-    const found = nextParts.flatMap((p) => repos.texts.recordTestResult(p.testId, p.result.outcome, p.durationMs, p.result.startedAt));
+    const found = nextParts.flatMap((p) => repos.texts.recordTestResult(p.testId, p.result.outcome, p.durationMs, p.result.startedAt, p.result.interrupted));
     setFlags([...new Set(found)]);
     recordActivity(nextParts.reduce((sum, p) => sum + p.durationMs, 0));
 

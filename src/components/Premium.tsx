@@ -17,9 +17,9 @@ type PlanKey = 'monthly' | 'quarterly' | 'yearly';
 
 /** ÖRNEK fiyatlar. Mağaza satın alması bağlanınca fiyatlar mağazadan okunmalıdır. */
 const PLANS: { key: PlanKey; price: string }[] = [
-  { key: 'yearly', price: '₺399,99' },
-  { key: 'quarterly', price: '₺149,99' },
-  { key: 'monthly', price: '₺59,99' },
+  { key: 'yearly', price: '₺499,99' },
+  { key: 'quarterly', price: '₺199,99' },
+  { key: 'monthly', price: '₺99,99' },
 ];
 
 const BENEFITS = ['benefitCourses', 'benefitTexts', 'benefitStats', 'benefitAds'] as const;

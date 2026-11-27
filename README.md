@@ -149,6 +149,8 @@ Her kategoriye eklenen çalışmalar: `diagonal_jump`, `pacer_read`, `column_flo
 
 ## Ölçüm sistemi
 
+(v1.1) Ölçüm metinleri 5 soru taşır; seviye testi yalnızca bu metinlerden seçilir. Kurallar: 600+ kelime/dk ve daha önce okunmuş ya da arka plana geçilmiş okumalar grafik dışıdır; 40 altı yalnızca incelemeye alınır; 300+ hızda hiç doğru yoksa grafik dışı, 1-39% ise uyarı. "Etkin hız" yerine "Düzeltilmiş hız (tahmini)" gösterilir.
+
 - Okuma hızı = kelime sayısı ÷ okuma süresi (sn) × 60; süre soruları kapsamaz. Sayım: boşlukla ayrılan, en az bir harf ya da rakam içeren parçalar.
 - Etkin hız = hız × anlama oranı. Sınav yolunda anlama, kişisel gelişimde etkin hız öne çıkar.
 - Seviye testi, uzunluk ve basit okunabilirlik ölçüsü yakın üç farklı metin kullanır (yaklaşık eşdeğerlik; metinler kalibre edilmemiştir). Her metinde 3 soru vardır.

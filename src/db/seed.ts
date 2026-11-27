@@ -8,6 +8,16 @@ import { countWords } from '../core/metrics';
  * Yerleşik içerik tohumlaması (idempotent): egzersiz tanımları, yerleşik metinler ve
  * her metne ait test/soruları. Tekrar çalıştırılabilir; mevcut kayıtları değiştirmez.
  */
+function insertQuestions(db: SqlDb, testId: number, questions: { question: string; options: string[]; correctIndex: number }[]): void {
+  questions.forEach((q, i) => {
+    db.runSync(
+      `INSERT INTO test_questions (test_id, position, question, options_json, correct_index)
+       VALUES (?, ?, ?, ?, ?)`,
+      [testId, i, q.question, JSON.stringify(q.options), q.correctIndex],
+    );
+  });
+}
+
 export function seedBuiltins(db: SqlDb, now: () => string = () => new Date().toISOString()): void {
   db.withTransactionSync(() => {
     for (const ex of Object.values(EXERCISES)) {
@@ -29,16 +39,7 @@ export function seedBuiltins(db: SqlDb, now: () => string = () => new Date().toI
     }
 
     const ts = now();
-    // Daha önce yüklenmiş metinler tek sorguyla atlanır; açılış süresi metin sayısıyla uzamaz.
-    const seeded = new Set(
-      db
-        .getAllSync<{ key: string }>(
-          'SELECT key FROM library_texts l WHERE key IS NOT NULL AND EXISTS (SELECT 1 FROM tests t WHERE t.text_id = l.id)',
-        )
-        .map((r) => r.key),
-    );
     for (const text of BUILTIN_TEXTS) {
-      if (seeded.has(text.key)) continue;
       db.runSync(
         `INSERT OR IGNORE INTO library_texts (key, title, body, word_count, source, created_at, updated_at)
          VALUES (?, ?, ?, ?, 'builtin', ?, ?)`,
@@ -48,17 +49,20 @@ export function seedBuiltins(db: SqlDb, now: () => string = () => new Date().toI
       if (!row) continue;
 
       const existingTest = db.getFirstSync<{ id: number }>('SELECT id FROM tests WHERE text_id = ?', [row.id]);
-      if (existingTest) continue;
+      if (existingTest) {
+        // Soru sayısı değiştiyse (ör. ölçüm metinlerine eklenen sorular) yalnızca soruları yenilenir;
+        // sonuç geçmişi test kimliğine bağlı olduğu için korunur.
+        const have = db.getFirstSync<{ n: number }>('SELECT COUNT(*) AS n FROM test_questions WHERE test_id = ?', [existingTest.id])?.n ?? 0;
+        if (have !== text.questions.length) {
+          db.runSync('DELETE FROM test_questions WHERE test_id = ?', [existingTest.id]);
+          insertQuestions(db, existingTest.id, text.questions);
+        }
+        continue;
+      }
 
       const type = text.key === LEVEL_TEST_KEY ? 'level' : 'reading';
       const testRes = db.runSync('INSERT INTO tests (text_id, type, created_at) VALUES (?, ?, ?)', [row.id, type, ts]);
-      text.questions.forEach((q, i) => {
-        db.runSync(
-          `INSERT INTO test_questions (test_id, position, question, options_json, correct_index)
-           VALUES (?, ?, ?, ?, ?)`,
-          [testRes.lastInsertRowId, i, q.question, JSON.stringify(q.options), q.correctIndex],
-        );
-      });
+      insertQuestions(db, testRes.lastInsertRowId, text.questions);
     }
   });
 }

@@ -66,7 +66,7 @@ export interface TextRepository {
   createCustomTest(textId: number, questions: Omit<TestQuestion, "id" | "position">[]): number;
   clearCustomTests(textId: number): void;
   /** Sonucu kaydeder; ölçüm şüpheliyse nedenlerini döner. */
-  recordTestResult(testId: number, outcome: TestOutcome, durationMs: number, startedAt?: string): MeasurementFlag[];
+  recordTestResult(testId: number, outcome: TestOutcome, durationMs: number, startedAt?: string, interrupted?: boolean): MeasurementFlag[];
   /** Daha önce okunmuş ya da testi çözülmüş hazır metinlerin anahtarları. */
   seenKeys(): string[];
   recordReadingSession(textId: number, wpm: number, durationMs: number, wordCount: number, mode: string, startedAt?: string): void;
@@ -206,7 +206,7 @@ export function createTextRepository(db: SqlDb): TextRepository {
         .map((r) => r.key);
     },
 
-    recordTestResult(testId, outcome, durationMs, startedAt = new Date().toISOString()) {
+    recordTestResult(testId, outcome, durationMs, startedAt = new Date().toISOString(), interrupted = false) {
       // Metin daha önce okunduysa ya da testi çözüldüyse ölçülen hız olduğundan yüksek çıkar.
       const seen = db.getFirstSync<{ n: number }>(
         `SELECT (SELECT COUNT(*) FROM test_results x JOIN tests o ON o.id = x.test_id WHERE o.text_id = t.text_id)
@@ -214,7 +214,7 @@ export function createTextRepository(db: SqlDb): TextRepository {
          FROM tests t WHERE t.id = ?`,
         [testId],
       );
-      const flags = measurementFlags({ wpm: outcome.wpm, comprehension: outcome.comprehension, seenBefore: (seen?.n ?? 0) > 0 });
+      const flags = measurementFlags({ wpm: outcome.wpm, comprehension: outcome.comprehension, seenBefore: (seen?.n ?? 0) > 0, interrupted });
       db.runSync(
         `INSERT INTO test_results (test_id, started_at, correct_count, total_count, wpm, comprehension_rate, duration_ms, word_count, flags)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,

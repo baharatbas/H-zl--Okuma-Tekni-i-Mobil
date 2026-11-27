@@ -33,7 +33,7 @@ export default function TextTestScreen() {
 
   const handleFinish = (r: ReadingTestResult) => {
     const previous = repos.progress.getPerformanceSeries(1)[0];
-    const flags = repos.texts.recordTestResult(test.id, r.outcome, r.durationMs, r.startedAt);
+    const flags = repos.texts.recordTestResult(test.id, r.outcome, r.durationMs, r.startedAt, r.interrupted);
     recordActivity(r.durationMs);
     completeDaily(daily);
     if (lesson !== undefined) {

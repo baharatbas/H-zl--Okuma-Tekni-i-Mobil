@@ -275,7 +275,7 @@ describe('kütüphane özet listesi', () => {
     seedBuiltins(db);
     const rows = createTextRepository(db).listSummaries();
     expect(rows).toHaveLength(BUILTIN_TEXTS.length);
-    expect(rows.every((r) => r.questions === 3 && r.preview.length <= 200)).toBe(true);
+    expect(rows.every((r) => (r.questions === 3 || r.questions === 5) && r.preview.length <= 200)).toBe(true);
   });
 });
 

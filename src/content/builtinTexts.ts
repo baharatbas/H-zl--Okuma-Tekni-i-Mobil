@@ -1,5 +1,6 @@
 import { EXTRA_BUILTIN_TEXTS } from './builtinTextsExtra';
 import { LIBRARY_TEXTS } from './library';
+import { MEASUREMENT_QUESTIONS } from './measurementQuestions';
 /**
  * Uygulamayla gelen özgün Türkçe okuma metinleri ve anlama soruları.
  * Metinler bu proje için yazılmıştır; başka kaynaklardan kopyalanmamıştır.
@@ -273,7 +274,11 @@ const BASE_BUILTIN_TEXTS: BuiltinText[] = [
   },
 ];
 
-export const BUILTIN_TEXTS: BuiltinText[] = [...BASE_BUILTIN_TEXTS, ...EXTRA_BUILTIN_TEXTS, ...LIBRARY_TEXTS];
+/** Ölçüm metinleri 5 soruya tamamlanır; diğer metinler mevcut sorularıyla kalır. */
+export const BUILTIN_TEXTS: BuiltinText[] = [...BASE_BUILTIN_TEXTS, ...EXTRA_BUILTIN_TEXTS, ...LIBRARY_TEXTS].map((text) => ({
+  ...text,
+  questions: [...text.questions, ...(MEASUREMENT_QUESTIONS[text.key] ?? [])],
+}));
 
 export function findBuiltinText(key: string): BuiltinText | undefined {
   return BUILTIN_TEXTS.find((t) => t.key === key);

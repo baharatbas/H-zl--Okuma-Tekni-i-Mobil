@@ -6,7 +6,7 @@ import { SafeAreaInsetsContext, useSafeAreaInsets } from 'react-native-safe-area
 import { PremiumBar } from '../../components/Premium';
 import { useIsPremium } from '../../store/premiumStore';
 import { haptic } from '../../services/haptics';
-import { radius, useTheme } from '../../theme';
+import { radius, spacing, useTheme } from '../../theme';
 import { t } from '../../i18n';
 
 const TABS = [
@@ -28,14 +28,17 @@ export default function TabsLayout() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { width, fontScale } = useWindowDimensions();
-  const bottom = Math.max(insets.bottom, 8);
+  // Yüzen menü: yanlardan ve alttan boşluk. Alt boşluk ana ekran çubuğunun üstünde kalır.
+  const side = spacing.lg;
+  const bottom = Math.max(insets.bottom - 8, spacing.md);
   const isPremium = useIsPremium();
-  const tabWidth = (width - insets.left - insets.right) / TABS.length;
+  const tabWidth = (width - insets.left - insets.right - side * 2) / TABS.length;
   const compact = tabWidth < 72;
   const pillWidth = Math.min(56, Math.max(36, tabWidth - 12));
   const fontSize = compact ? 10 : 11;
   const lineHeight = Math.ceil(fontSize * 1.35 * Math.min(fontScale, MAX_LABEL_SCALE));
   const tabs = (
+    <SafeAreaInsetsContext.Provider value={{ ...insets, bottom: 0, left: 0, right: 0, top: isPremium ? insets.top : 0 }}>
     <Tabs
       screenListeners={{ tabPress: () => haptic('light') }}
       screenOptions={{
@@ -44,19 +47,24 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: {
           // Simge + etiket + boşluklar; yazı büyüdükçe menü de uzar.
-          height: 8 + 32 + 4 + lineHeight + 6 + bottom,
+          height: 8 + 32 + 4 + lineHeight + 8,
           paddingTop: 8,
-          paddingBottom: bottom,
+          paddingBottom: 8,
+          paddingHorizontal: 4,
+          marginLeft: insets.left + side,
+          marginRight: insets.right + side,
+          marginBottom: bottom,
           backgroundColor: colors.surface,
+          borderRadius: 32,
           borderTopWidth: StyleSheet.hairlineWidth,
+          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: colors.border,
           borderTopColor: colors.border,
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
           shadowColor: '#000000',
-          shadowOpacity: 0.07,
-          shadowRadius: 12,
-          shadowOffset: { width: 0, height: -3 },
-          elevation: 10,
+          shadowOpacity: 0.12,
+          shadowRadius: 16,
+          shadowOffset: { width: 0, height: 6 },
+          elevation: 8,
         },
         tabBarLabelPosition: 'below-icon',
         tabBarHideOnKeyboard: true,
@@ -90,14 +98,16 @@ export default function TabsLayout() {
         />
       ))}
     </Tabs>
+    </SafeAreaInsetsContext.Provider>
   );
 
-  if (isPremium) return tabs;
+  // Menünün altında ve yanlarında sayfa zemini görünür.
+  if (isPremium) return <View style={{ flex: 1, backgroundColor: colors.background }}>{tabs}</View>;
   // Bant üst güvenli alanı kendisi kapladığı için sayfalar ayrıca üst boşluk bırakmaz.
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <PremiumBar />
-      <SafeAreaInsetsContext.Provider value={{ ...insets, top: 0 }}>{tabs}</SafeAreaInsetsContext.Provider>
+      {tabs}
     </View>
   );
 }
