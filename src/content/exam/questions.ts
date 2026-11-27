@@ -3,6 +3,11 @@
  * Her sorunun 5 şıkkı vardır; 4 şıklı sınavda bir yanlış şık çalışma anında çıkarılır.
  */
 import type { ParagraphQuestion, QuestionType } from '../../core/exam/types';
+import { BANK_1 } from './bank1';
+import { BANK_2 } from './bank2';
+import { BANK_3 } from './bank3';
+import { BANK_4 } from './bank4';
+import { BANK_5 } from './bank5';
 
 const q = (id: string, type: QuestionType, passage: string, stem: string, options: string[], correct: number, explanation: string, fixedOrder?: boolean): ParagraphQuestion =>
   ({ id, type, passage, stem, options, correct, explanation, fixedOrder });
@@ -12,7 +17,7 @@ const FLOW = 'Bu parçada numaralanmış cümlelerden hangisi düşüncenin akı
 const ORDER = 'Numaralanmış cümlelerle anlamlı bir paragraf oluşturulduğunda doğru sıralama hangisi olur?';
 const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
 
-export const PARAGRAPH_QUESTIONS: ParagraphQuestion[] = [
+const FIRST_QUESTIONS: ParagraphQuestion[] = [
   q('main-1', 'main',
     'Bir enstrümanı öğrenen kişi ilk haftalarda hızlı ilerlediğini düşünür. Sonra uzun süre aynı yerde sayıyormuş gibi gelir. Oysa bu dönemde parmaklar ve kulak, dışarıdan görülmeyen küçük ayarlar yapar. Sabredip çalışmayı sürdürenler, bir gün daha önce çalamadıkları parçayı kolayca çalarken bulur kendilerini.',
     MAIN,
@@ -125,5 +130,7 @@ export const PARAGRAPH_QUESTIONS: ParagraphQuestion[] = [
     ORDER, ['II - IV - I - III', 'IV - II - III - I', 'I - III - II - IV', 'II - I - IV - III', 'III - II - IV - I'], 0,
     'Hazırlık (II), ilk atlayış (IV), "Ancak bu ilk uçuş" (I), gelişme (III).', true),
 ];
+
+export const PARAGRAPH_QUESTIONS: ParagraphQuestion[] = [...FIRST_QUESTIONS, ...BANK_1, ...BANK_2, ...BANK_3, ...BANK_4, ...BANK_5];
 
 export const questionsOfType = (type: QuestionType) => PARAGRAPH_QUESTIONS.filter((x) => x.type === type);

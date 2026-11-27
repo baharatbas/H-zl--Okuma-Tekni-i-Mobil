@@ -1,7 +1,7 @@
 import { PARAGRAPH_QUESTIONS, questionsOfType } from '../content/exam/questions';
 import { TECHNIQUES } from '../content/exam/techniques';
 import { buildExamCourse, examRef } from '../core/exam/course';
-import { advice, pickSet, prepareQuestion, stats, weakestType, Attempt } from '../core/exam/practice';
+import { advice, pickFresh, prepareQuestion, stats, weakestType, Attempt } from '../core/exam/practice';
 import { QUESTION_TYPES } from '../core/exam/types';
 import { EXERCISE_KEYS } from '../core/exercises/registry';
 import { createRng } from '../core/rng';
@@ -45,10 +45,18 @@ describe('soru hazırlama', () => {
 });
 
 describe('set seçimi ve puanlama', () => {
-  it('çözülmemiş sorular önce, doğru çözülenler en son gelir', () => {
-    const pool = questionsOfType('main');
-    const history = [attempt(pool[0].id, 'main', true), attempt(pool[1].id, 'main', false)];
-    expect(pickSet(pool, history, 3, createRng(3)).map((q) => q.id)).toEqual([pool[2].id, pool[1].id, pool[0].id]);
+  it('gösterilmemiş sorular bitmeden hiçbiri yinelenmez', () => {
+    const pool = PARAGRAPH_QUESTIONS.map((q) => ({ ...q, shownAt: null as string | null }));
+    const seen = new Set<string>();
+    const days = Math.floor(pool.length / 5);
+    for (let day = 0; day < days; day++) {
+      for (const q of pickFresh(pool, 5, createRng(day))) {
+        expect(seen.has(q.id)).toBe(false);
+        seen.add(q.id);
+        q.shownAt = String(1000 + day);
+      }
+    }
+    expect(seen.size).toBe(days * 5);
   });
   it('doğruluk, süre ve öneri', () => {
     const s = stats([attempt('a', 'main', true, 50000), attempt('b', 'main', false, 90000)]);

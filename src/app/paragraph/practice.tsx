@@ -3,12 +3,12 @@ import { Pressable, ScrollView, ScrollViewInstance, StyleSheet, View } from 'rea
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Button, Card, ProgressBar, Text_ } from '../../components/ui';
-import { PARAGRAPH_QUESTIONS, questionsOfType } from '../../content/exam/questions';
 import { TECHNIQUES } from '../../content/exam/techniques';
-import { advice, Attempt, pickSet, PreparedQuestion, prepareQuestion, stats } from '../../core/exam/practice';
+import { advice, Attempt, PreparedQuestion, prepareQuestion, stats } from '../../core/exam/practice';
 import { QUESTION_TYPES, QuestionType } from '../../core/exam/types';
 import { createRng } from '../../core/rng';
 import { countWords } from '../../core/metrics';
+import { localDateString } from '../../core/streak';
 import { repositories } from '../../repositories';
 import { recordActivity } from '../../services/activity';
 import { haptic } from '../../services/haptics';
@@ -28,9 +28,9 @@ export default function PracticeScreen() {
 
   const buildSet = (): PreparedQuestion[] => {
     const rng = createRng(Math.floor(Math.random() * 0xffffffff));
-    const pool = questionType ? questionsOfType(questionType) : PARAGRAPH_QUESTIONS;
-    const history = repositories().paragraphs.list();
-    return pickSet(pool, history, questionType ? 3 : DAILY_COUNT, rng).map((q) => prepareQuestion(q, exam.optionCount, rng));
+    const repo = repositories().paragraphs;
+    const questions = questionType ? repo.practiceSet(questionType, 3, rng) : repo.dailySet(localDateString(), DAILY_COUNT, rng);
+    return questions.map((q) => prepareQuestion(q, exam.optionCount, rng));
   };
 
   const [set, setSet] = useState<PreparedQuestion[]>(buildSet);
@@ -97,6 +97,20 @@ export default function PracticeScreen() {
     setFinished(false);
   };
 
+  if (set.length === 0) {
+    return (
+      <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }} style={{ backgroundColor: colors.background }}>
+        <Stack.Screen options={{ title }} />
+        <Card style={{ alignItems: 'center', gap: spacing.md, paddingVertical: spacing.xl }}>
+          <Ionicons name="checkmark-circle" size={48} color={colors.success} />
+          <Text_ variant="heading">{t('exam.dailyDone')}</Text_>
+          <Text_ muted style={{ textAlign: 'center' }}>{t('exam.dailyDoneBody')}</Text_>
+        </Card>
+        <Button title={t('common.close')} onPress={() => router.back()} />
+      </ScrollView>
+    );
+  }
+
   if (finished) {
     const s = stats(done);
     const tip = advice(s, exam.targetSec);
@@ -113,7 +127,8 @@ export default function PracticeScreen() {
           <Ionicons name="bulb-outline" size={22} color={colors.primary} />
           <Text_ style={{ flex: 1 }}>{t(`exam.advice_${tip}`)}</Text_>
         </View>
-        <Button title={t('exam.again')} onPress={again} />
+        {/* Günün seti yinelenmez; yalnızca tip çalışmasında yeni sorular istenebilir. */}
+        {questionType ? <Button title={t('exam.again')} onPress={again} /> : null}
         <Button title={t('common.close')} variant="secondary" onPress={() => router.back()} />
       </ScrollView>
     );

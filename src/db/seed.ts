@@ -1,5 +1,6 @@
 import type { SqlDb } from './types';
 import { BUILTIN_TEXTS, LEVEL_TEST_KEY } from '../content/builtinTexts';
+import { PARAGRAPH_QUESTIONS } from '../content/exam/questions';
 import { EXERCISES } from '../core/exercises/registry';
 import { countWords } from '../core/metrics';
 
@@ -14,6 +15,17 @@ export function seedBuiltins(db: SqlDb, now: () => string = () => new Date().toI
         'INSERT OR IGNORE INTO exercises (key, name, description, difficulty_params_json) VALUES (?, ?, ?, ?)',
         [ex.key, ex.name, ex.description, JSON.stringify(ex.defaults)],
       );
+    }
+
+    const stored = db.getFirstSync<{ n: number }>('SELECT COUNT(*) AS n FROM paragraph_questions')?.n ?? 0;
+    if (stored < PARAGRAPH_QUESTIONS.length) {
+      for (const q of PARAGRAPH_QUESTIONS) {
+        db.runSync(
+          `INSERT OR IGNORE INTO paragraph_questions (id, type, passage, stem, options_json, correct, explanation, fixed_order)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [q.id, q.type, q.passage, q.stem, JSON.stringify(q.options), q.correct, q.explanation, q.fixedOrder ? 1 : 0],
+        );
+      }
     }
 
     const ts = now();

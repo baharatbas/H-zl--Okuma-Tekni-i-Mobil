@@ -69,6 +69,8 @@ export const tr = {
     v3Title: 'Zayıf tipini bul',
     v3Body: 'Hangi tipte zorlandığını gör ve oraya çalış.',
     honestBody: 'Net garantisi vermiyoruz. Hız ancak doğruluk oturduktan sonra anlamlıdır.',
+    dailyDone: 'Bugünün setini tamamladın',
+    dailyDoneBody: 'Yarın daha önce görmediğin yeni sorular gelecek.',
     trackTitle: 'Sana uygun program',
     trackSelf: 'Kişisel gelişim',
     trackExam: 'Sınava hazırlık',

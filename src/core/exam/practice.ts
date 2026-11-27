@@ -28,16 +28,23 @@ export interface Attempt {
 }
 
 /**
- * Set seçimi: önce hiç çözülmemiş, sonra son denemesi yanlış, en son doğru çözülmüş sorular.
- * `history` eskiden yeniye sıralıdır.
+ * Set seçimi: hiç gösterilmemiş sorular bitmeden hiçbiri yinelenmez; hepsi gösterildiyse en eski
+ * gösterilenden başlanır. Aynı sette farklı soru tipleri tercih edilir.
  */
-export function pickSet(pool: ParagraphQuestion[], history: Attempt[], count: number, rng: Rng): ParagraphQuestion[] {
-  const last = new Map<string, boolean>();
-  history.forEach((a) => last.set(a.questionId, a.correct));
-  const rank = (q: ParagraphQuestion) => (!last.has(q.id) ? 0 : last.get(q.id) ? 2 : 1);
-  return shuffle(rng, pool)
-    .sort((a, b) => rank(a) - rank(b))
-    .slice(0, count);
+export function pickFresh<T extends ParagraphQuestion & { shownAt: string | null }>(pool: T[], count: number, rng: Rng): T[] {
+  const rest = shuffle(rng, pool).sort((a, b) => (a.shownAt ?? '').localeCompare(b.shownAt ?? ''));
+  const chosen: T[] = [];
+  while (chosen.length < count && rest.length > 0) {
+    const tier = rest[0].shownAt ?? '';
+    const open = rest.filter((q) => (q.shownAt ?? '') === tier);
+    // Sette en az kullanılan tipten, o tipte de en çok yeni soru kalanından seçilir.
+    const used = (type: QuestionType) => chosen.filter((c) => c.type === type).length;
+    const left = (type: QuestionType) => open.filter((c) => c.type === type).length;
+    const next = [...open].sort((a, b) => used(a.type) - used(b.type) || left(b.type) - left(a.type))[0];
+    chosen.push(next);
+    rest.splice(rest.indexOf(next), 1);
+  }
+  return chosen;
 }
 
 export interface Stats {

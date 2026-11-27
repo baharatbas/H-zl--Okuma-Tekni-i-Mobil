@@ -202,6 +202,22 @@ export const MIGRATIONS: Migration[] = [
     name: 'measurement_flags',
     statements: [`ALTER TABLE test_results ADD COLUMN flags TEXT NOT NULL DEFAULT ''`],
   },
+  {
+    version: 9,
+    name: 'paragraph_question_bank',
+    statements: [
+      `CREATE TABLE IF NOT EXISTS paragraph_questions (
+        id TEXT PRIMARY KEY, type TEXT NOT NULL, passage TEXT NOT NULL, stem TEXT NOT NULL,
+        options_json TEXT NOT NULL, correct INTEGER NOT NULL, explanation TEXT NOT NULL, fixed_order INTEGER NOT NULL DEFAULT 0)`,
+      'CREATE TABLE IF NOT EXISTS paragraph_shown (question_id TEXT PRIMARY KEY, shown_at TEXT NOT NULL, times INTEGER NOT NULL DEFAULT 1)',
+      `CREATE TABLE IF NOT EXISTS daily_paragraph (
+        date TEXT NOT NULL, position INTEGER NOT NULL, question_id TEXT NOT NULL, answered INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY (date, position))`,
+      // Daha önce çözülen sorular gösterilmiş sayılır.
+      `INSERT OR IGNORE INTO paragraph_shown (question_id, shown_at, times)
+       SELECT question_id, MAX(created_at), COUNT(*) FROM paragraph_attempts GROUP BY question_id`,
+    ],
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

@@ -1,3 +1,4 @@
+import { createRng } from '../core/rng';
 /**
  * @jest-environment node
  */
@@ -31,8 +32,8 @@ function setup() {
 describe('migrasyonlar', () => {
   it('şemayı en son sürüme getirir ve tekrar çalıştırıldığında hiçbir şey uygulamaz', () => {
     const db = openMemoryDb();
-    expect(migrate(db)).toBe(8);
-    expect(currentSchemaVersion(db)).toBe(8);
+    expect(migrate(db)).toBe(9);
+    expect(currentSchemaVersion(db)).toBe(9);
     expect(migrate(db)).toBe(0);
   });
 
@@ -340,5 +341,43 @@ describe('sınav kursu 15 ders', () => {
     const grown = course.getActive()!;
     expect(grown.lessons).toHaveLength(full.lessons.length);
     expect(grown.lessons[0].isCompleted).toBe(true);
+  });
+});
+
+describe('paragraf soru bankası', () => {
+  it('günün seti gün içinde sabit, günler arasında yinelenmez ve cevaplananlar düşer', () => {
+    const { db } = setup();
+    const repo = createParagraphRepository(db);
+    const first = repo.dailySet('2026-12-01', 5, createRng(1));
+    expect(repo.dailySet('2026-12-01', 5, createRng(2)).map((q) => q.id)).toEqual(first.map((q) => q.id));
+    repo.record({ questionId: first[0].id, type: first[0].type, correct: true, durationMs: 1000 });
+    expect(repo.dailySet('2026-12-01', 5, createRng(3))).toHaveLength(4);
+    const second = repo.dailySet('2026-12-02', 5, createRng(1));
+    expect(second.some((q) => first.some((f) => f.id === q.id))).toBe(false);
+    const practiced = repo.practiceSet('main', 3, createRng(1));
+    expect(practiced.some((q) => [...first, ...second].some((f) => f.id === q.id))).toBe(false);
+  });
+});
+
+describe('64 günlük paragraf seti', () => {
+  it('64 gün boyunca hiçbir soru yinelenmez, 65. günde en eskiden başlanır', () => {
+    const { db } = setup();
+    const repo = createParagraphRepository(db);
+    const seen = new Set<string>();
+    let first: string[] = [];
+    for (let day = 0; day < 64; day++) {
+      const date = new Date(Date.UTC(2027, 0, 1 + day)).toISOString().slice(0, 10);
+      const set = repo.dailySet(date, 5, createRng(day));
+      expect(set).toHaveLength(5);
+      set.forEach((q) => {
+        expect(seen.has(q.id)).toBe(false);
+        seen.add(q.id);
+      });
+      if (day === 0) first = set.map((q) => q.id);
+      db.runSync('UPDATE paragraph_shown SET shown_at = ? WHERE question_id IN (SELECT question_id FROM daily_paragraph WHERE date = ?)', [date, date]);
+    }
+    expect(seen.size).toBe(320);
+    const again = repo.dailySet('2027-03-06', 5, createRng(99)).map((q) => q.id);
+    expect(again.every((id) => first.includes(id))).toBe(true);
   });
 });

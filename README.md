@@ -125,6 +125,7 @@ bir işlem içinde çalıştırır.
 - **Sınava hazırlık** (LGS, TYT/YKS, KPSS/ALES): 8 paragraf soru tipi. Kursta her tip için okuma egzersizi → teknik dersi → süreli soru. Ardından 7 sınav hızı dersi gelir (taktik → alıştırma → okuma → test); toplam 15 ders.
 - LGS 4 şıklı, diğerleri 5 şıklı gösterilir.
 - Soru başına süre hedefleri (`src/core/exam/types.ts`) uygulamanın çalışma hedefidir; **resmî sınav süresi değildir**.
+- 320 özgün soru (her tipten 40) SQLite'a yüklenir. Günün 5 soruluk seti güne bağlıdır; gösterilmemiş soru kaldıkça yineleme olmaz (yalnız günlük setle 64 gün; tip çalışmaları da aynı havuzdan tüketir). Cevap anahtarı uzman denetiminden geçmemiştir.
 - Sorular ve teknikler `src/content/exam/` içindedir ve özgündür. Yeni soru eklemek için `questions.ts` dosyasına ekleyin; testler şık ve cevap tutarlılığını denetler.
 - Denemeler `paragraph_attempts` tablosunda tutulur (şema sürüm 2).
 
