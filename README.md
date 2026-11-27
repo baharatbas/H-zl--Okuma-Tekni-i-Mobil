@@ -160,6 +160,10 @@ Her kategoriye eklenen çalışmalar: `diagonal_jump`, `pacer_read`, `column_flo
 
 Öğrenci (`exam`), çalışan (`work`), kitap okuru (`books`) ve genel (`self`). Her grubun kursu, günlük antrenman havuzu, metin konuları, önerilen egzersizleri ve öne çıkan ölçüsü ayrıdır: `src/core/segments.ts`, `src/core/segmentCourse.ts`. Her grubun kursu ayrı saklanır (`courses.segment`, şema 10); grup değiştirmek ilerlemeyi silmez. Çalışan kursu 20 derstir; son 14 dersin metinleri kurgu iş belgeleridir (`src/content/library/work.ts`). Kitap okuru kursu da 20 derstir; son 14 dersin metinleri özgün hikâyelerdir (`src/content/library/story.ts`).
 
+## Hesap
+
+İlk açılışta tanıtımdan sonra giriş ekranı gelir. Android: Google ya da misafir. iPhone: Google, Apple ya da misafir. Google ve Apple girişleri henüz bağlı değildir (bilgi mesajı gösterir). Misafir seçimi `settings.account` alanında cihazda saklanır; premium yalnızca hesapla girişte açılır (`src/core/account.ts`).
+
 ## İlk açılış
 
 Hoş geldin → hedef → günlük süre (5/10/15/20 dk) → 3 metinli başlangıç testi → program. Seviye ve ölçümler test tamamen bitince kaydedilir; yarıda bırakılırsa akış yeniden açılır. Seçimler `user_profile.settings_json` içindedir, hesap gerekmez. Süre, günlük antrenmanın görev sayısını belirler (2/5/7/9).

@@ -17,7 +17,7 @@ const FEATURES = [
 export default function WelcomeScreen() {
   const { colors } = useTheme();
   return (
-    <OnboardingFrame title={t('onboarding.welcomeTitle')} subtitle={t('onboarding.welcomeSubtitle')} cta={t('onboarding.welcomeCta')} onCta={() => router.push('/onboarding/about')}>
+    <OnboardingFrame title={t('onboarding.welcomeTitle')} subtitle={t('onboarding.welcomeSubtitle')} cta={t('onboarding.welcomeCta')} onCta={() => router.push('/onboarding/login' as any)}>
       <View style={{ alignItems: 'center', paddingVertical: spacing.lg }}>
         <View style={{ width: 120, height: 120, borderRadius: 32, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
           <Ionicons name="book" size={60} color={colors.onPrimary} />

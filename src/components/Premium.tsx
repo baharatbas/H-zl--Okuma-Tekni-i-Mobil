@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, View } from 'react-native';
+import { Alert, Modal, Platform, Pressable, ScrollView, View } from 'react-native';
+import { canUsePremium, OS } from '../core/account';
+import { useAppStore } from '../store/appStore';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Text_ } from './ui';
@@ -72,6 +74,9 @@ function PremiumSheet({ visible, onClose }: { visible: boolean; onClose: () => v
   const { colors, reducedMotion } = useTheme();
   const insets = useSafeAreaInsets();
   const [selected, setSelected] = useState<PlanKey>('yearly');
+  const account = useAppStore((s) => s.settings.account);
+  const os: OS = Platform.OS === 'ios' ? 'ios' : 'android';
+  const allowed = canUsePremium(account, os);
 
   return (
     <Modal visible={visible} transparent animationType={reducedMotion ? 'fade' : 'slide'} onRequestClose={onClose}>
@@ -120,7 +125,13 @@ function PremiumSheet({ visible, onClose }: { visible: boolean; onClose: () => v
               })}
             </View>
 
-            <Button title={t('premium.continue')} onPress={() => Alert.alert(t('premium.soonTitle'), t('premium.soonMessage'))} />
+            {!allowed ? (
+              <View style={{ padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.warning + '1A', gap: spacing.xs }}>
+                <Text_ variant="label">{t(os === 'ios' ? 'premium.needAccountIos' : 'premium.needAccountAndroid')}</Text_>
+                <Text_ variant="caption" muted>{t('premium.needAccountSoon')}</Text_>
+              </View>
+            ) : null}
+            <Button title={t('premium.continue')} disabled={!allowed} onPress={() => Alert.alert(t('premium.soonTitle'), t('premium.soonMessage'))} />
             <Text_ variant="caption" muted style={{ textAlign: 'center' }}>{t('premium.sampleNote')}</Text_>
           </ScrollView>
         </View>

@@ -1,6 +1,8 @@
 /** Uygulama ayarları. Kalıcı olarak user_profile.settings_json içinde saklanır. */
 import type { Segment } from './segments';
 
+import type { AccountKind } from './account';
+
 export type ThemeMode = 'system' | 'light' | 'dark';
 export type ReadingMode = 'word' | 'chunk' | 'block';
 export type LearningMode = 'smart' | 'free';
@@ -25,6 +27,8 @@ export interface AppSettings {
   purpose: Segment | null;
   /** Sınav yolunda hedeflenen sınav. */
   examTarget: 'lgs' | 'tyt' | 'kpss' | 'uni';
+  /** Hesap türü: misafir ya da Google / Apple girişi. */
+  account: AccountKind;
   /** İsteğe bağlı hitap adı; yalnızca bu cihazda saklanır. */
   displayName: string;
 }
@@ -46,6 +50,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   purpose: null,
   examTarget: 'tyt',
   displayName: '',
+  account: 'none',
 };
 
 /** Bilinmeyen/bozuk JSON'u güvenle birleştirir: eksik alanlar varsayılanla tamamlanır. */
